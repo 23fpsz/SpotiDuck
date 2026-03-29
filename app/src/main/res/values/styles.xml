@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Main App Theme: Always Dark -->
+    <style name="Theme.Spotifuck" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:statusBarColor">@color/spotify_black</item>
+        <item name="android:navigationBarColor">@color/spotify_black</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:windowBackground">@color/spotify_black</item>
+
+        <item name="actionBarSize">48dp</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorPrimary">@color/red</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="android:actionOverflowButtonStyle">@style/overflowStyle</item>
+    </style>
+
+    <!-- Settings Theme: Always Dark (Ignores system Light/Dark mode) -->
+    <style name="Theme.Spotifuck.Settings" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:statusBarColor">@color/spotify_black</item>
+        <item name="android:navigationBarColor">@color/spotify_black</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:windowBackground">@color/spotify_black</item>
+        <item name="android:colorBackground">@color/spotify_black</item>
+
+        <item name="colorPrimary">@color/red</item>
+        <item name="colorPrimaryDark">@color/dark_red</item>
+        <item name="colorAccent">@color/teal_200</item>
+        <item name="colorControlActivated">@color/teal_200</item>
+
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">#B3FFFFFF</item>
+        <item name="android:textColorTertiary">#80FFFFFF</item>
+    </style>
+
+    <!-- Amoled Settings Theme -->
+    <style name="Theme.Spotifuck.Settings.Amoled" parent="Theme.AppCompat.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="colorPrimary">@android:color/black</item>
+        <item name="colorPrimaryDark">@android:color/black</item>
+        <item name="colorAccent">@color/teal_200</item>
+        <item name="colorControlActivated">@color/teal_200</item>
+        <item name="colorControlNormal">#B3FFFFFF</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">#B3FFFFFF</item>
+        <item name="android:textColorTertiary">#80FFFFFF</item>
+    </style>
+
+    <style name="overflowStyle" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:padding">2dp</item>
+        <item name="android:src">@mipmap/ic_launcher</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
+
+    <style name="PreferenceSummaryTextStyle" tools:override="true">
+        <item name="android:textAppearance">?android:textAppearanceListItemSecondary</item>
+    </style>
+</resources>

@@ -1,0 +1,21 @@
+# Android Studio / IntelliJ / Gradle
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Project specific
+/Spotifuck_src-master
+/app/release
+/Apk Key
+*.apk
+*.mp4
+*.exe
+
+# User specific
+Captures/
