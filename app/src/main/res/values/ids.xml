@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="btnSettings" />
+    <item type="id" name="btn_wfav" />
+    <item type="id" name="btn_wnext" />
+    <item type="id" name="btn_wplay" />
+    <item type="id" name="btn_wprev" />
+    <item type="id" name="btn_wrepeat" />
+    <item type="id" name="content_container" />
+    <item type="id" name="controls_row" />
+    <item type="id" name="frameBgText" />
+    <item type="id" name="frameStatusText" />
+    <item type="id" name="hScrollView" />
+    <item type="id" name="icon_frame" />
+    <item type="id" name="img_cover" />
+    <item type="id" name="main" />
+    <item type="id" name="progressBar" />
+    <item type="id" name="swcLabel" />
+    <item type="id" name="swcStart" />
+    <item type="id" name="topNav" />
+    <item type="id" name="txtMessage" />
+    <item type="id" name="txtTitle" />
+    <item type="id" name="txt_fulltitle" />
+    <item type="id" name="webViewContainer" />
+    <item type="id" name="widget_root" />
+</resources>
