@@ -187,6 +187,22 @@ aside[data-testid="right-sidebar"],
     background: transparent !important;
 }
 
+/* Hide Canvas related menu items - refined to ensure Artwork toggle stays visible */
+.sf-hide-canvas button[data-testid*="canvas-button"]:not([aria-label*="artwork"]),
+.sf-hide-canvas button[data-testid*="canvas-button"]:not([aria-label*="Artwork"]) {
+    display: none !important;
+}
+
+/* Force hide video elements when canvas is disabled */
+.sf-hide-canvas #VideoPlayerCinema_ReactPortal,
+.sf-hide-canvas .VideoPlayer__container,
+.sf-hide-canvas .VideoPlayer__container video {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 .sf-video-bg .VideoPlayer__container,
 .sf-video-bg [data-testid*="canvas"],
 .sf-video-bg .VideoPlayer__container video,
@@ -256,6 +272,20 @@ body.sf-fullscreen-enabled.sf-expanded aside[data-testid=now-playing-bar] {
     padding-bottom: 8px;
 }
 
+/* Stable Album art positioning override */
+body.sf-fullscreen-enabled.sf-expanded div:has(> [data-testid="cover-art-image"]):has(+ #VideoPlayerCinema_ReactPortal) {
+    transform: translateY(72px) !important;
+    position: relative !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    /* display: block !important;
+    --cinema-media-height: 75vh; */
+    height: var(--cinema-media-height);
+    aspect-ratio: 1;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
 body.sf-fullscreen-enabled.sf-expanded aside[data-testid=now-playing-view] [data-testid=now-playing-widget] {
     margin-bottom: 120px !important;
 }
@@ -271,12 +301,4 @@ body.sf-fullscreen-disabled.sf-expanded #global-nav-bar {
     pointer-events: auto !important;
     transform: none !important;
     z-index: 1000000 !important;
-}
-
-/* Hide Canvas related menu items */
-.sf-hide-canvas [role="menuitem"]:has(button[data-testid*="canvas"]),
-.sf-hide-canvas [role="menuitem"]:has(span:contains("Canvas")),
-.sf-hide-canvas button[data-testid*="canvas-button"],
-.sf-hide-canvas li:has(button[data-testid*="canvas"]) {
-    display: none !important;
 }
