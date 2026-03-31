@@ -162,7 +162,7 @@
         if (enable) {
             if (document.visibilityState == 'hidden') AndBridge.wakeUp();
         } else {
-            if (!AndBridge.isWoke() && document.visibilityState == 'visible') AndBridge.wakeOff();
+            if (!AndBridge.isWoke() && document.visibilityState == 'visible' && !document.querySelector('.VideoPlayer__container video')) AndBridge.wakeOff();
         }
     };
 
@@ -288,7 +288,11 @@
                             });
                             if (window.SF_CONFIG.isCanvasDisabled) {
                                 node.querySelectorAll("[role='menuitem'], li").forEach(el => {
-                                    if (el.innerText && el.innerText.includes('Canvas')) el.style.display = 'none';
+                                    let txt = (el.innerText || "").toLowerCase();
+                                    // Only hide if it contains 'canvas' but NOT 'artwork' or 'album art'
+                                    if (txt.includes('canvas') && !txt.includes('artwork') && !txt.includes('album art')) {
+                                        el.style.setProperty('display', 'none', 'important');
+                                    }
                                 });
                             }
                         }

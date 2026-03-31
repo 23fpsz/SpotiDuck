@@ -97,7 +97,7 @@ class SpotifyWebViewClient : WebViewClient() {
             }
         }
 
-        // 3. Canvas Block (Matches 1.0.9 logic)
+        // 3. Canvas Block (Matches v1.0.9 logic)
         if (AppSingleton.isCanvasDisabled && (url.endsWith(".mp4") || url.endsWith(".webm") || url.contains("/canvaz/"))) {
             return WebResourceResponse("text/plain", "utf-8", 200, "OK", null, ByteArrayInputStream(ByteArray(0)))
         }
