@@ -28,6 +28,12 @@ class AndBridge(context: Context) {
     }
 
     @JavascriptInterface
+    fun setCanvasDisabled(disabled: Boolean) {
+        AppSingleton.isCanvasDisabled = disabled
+        AppSingleton.prefsEditor.putBoolean("DisableCanvas", disabled).apply()
+    }
+
+    @JavascriptInterface
     fun manageTShut(z2: Boolean) {
         if (!WebService.isServiceRunning || AppSingleton.autoShutMinutes <= 0 || !z2) {
             AppSingleton.shutRunnable?.let { AppSingleton.shutHandler.removeCallbacks(it) }

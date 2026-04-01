@@ -265,6 +265,34 @@
         }
     };
 
+    window.syncCanvasToggle = function(el) {
+        if (!el || el.classList.contains('fuckd-cv')) return;
+        el.classList.add('fuckd-cv');
+
+        const updateState = () => {
+            let shouldBeChecked = !window.SF_CONFIG.isCanvasDisabled;
+            if (el.checked !== shouldBeChecked) {
+                el.click();
+            }
+        };
+
+        updateState();
+        el.addEventListener('change', () => {
+            let isCurrentlyDisabled = !el.checked;
+            if (isCurrentlyDisabled !== window.SF_CONFIG.isCanvasDisabled) {
+                window.SF_CONFIG.isCanvasDisabled = isCurrentlyDisabled;
+                AndBridge.setCanvasDisabled(isCurrentlyDisabled);
+                if (isCurrentlyDisabled) {
+                    document.body.classList.add('sf-hide-canvas');
+                    document.body.classList.remove('sf-video-bg');
+                } else {
+                    document.body.classList.remove('sf-hide-canvas');
+                    document.body.classList.add('sf-video-bg');
+                }
+            }
+        });
+    };
+
     window.addGlobalCleanup = function() {
         let gst = document.createElement('style');
         gst.id = 'global-cleanup-style';
@@ -286,10 +314,13 @@
                                     }
                                 }
                             });
+
+                            let cv = node.querySelector('#settings\\.canvasVideos') || (node.id === 'settings.canvasVideos' ? node : null);
+                            if (cv) syncCanvasToggle(cv);
+
                             if (window.SF_CONFIG.isCanvasDisabled) {
                                 node.querySelectorAll("[role='menuitem'], li").forEach(el => {
                                     let txt = (el.innerText || "").toLowerCase();
-                                    // Only hide if it contains 'canvas' but NOT 'artwork' or 'album art'
                                     if (txt.includes('canvas') && !txt.includes('artwork') && !txt.includes('album art')) {
                                         el.style.setProperty('display', 'none', 'important');
                                     }
@@ -310,9 +341,14 @@
                 firstPlay = false;
             }
         }
-        if (window.SF_CONFIG.closeNowPlay || window.SF_CONFIG.takeControl || window.SF_CONFIG.autoPlayMode === "permanent") {
+        if (window.SF_CONFIG.closeNowPlay || window.SF_CONFIG.takeControl || window.SF_CONFIG.autoPlayMode === "permanent" || typeof window.SF_CONFIG.isCanvasDisabled !== 'undefined') {
             if (afint) clearInterval(afint);
             afint = setInterval(() => {
+                if (typeof window.SF_CONFIG.isCanvasDisabled !== 'undefined') {
+                    let cv = document.getElementById('settings.canvasVideos');
+                    if (cv) syncCanvasToggle(cv);
+                }
+
                 if (window.SF_CONFIG.closeNowPlay) closeNowPlay();
                 if (window.SF_CONFIG.takeControl) {
                     let ft = document.querySelector('aside div.encore-bright-accent-set button');
