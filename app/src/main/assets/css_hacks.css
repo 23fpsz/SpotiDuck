@@ -98,9 +98,26 @@ div[data-testid=tracklist-row] button:not([data-testid=add-to-playlist-button]) 
 
 aside[data-testid=now-playing-bar] {
     min-width: 100% !important;
-    box-shadow: 0 0 6px #440000;
-    background: linear-gradient(to bottom, #770000, #330000) !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    background: var(--background-base, #121212) !important;
     display: flex !important;
+}
+
+/* DEEP GLASS EFFECT: Tunable 3-stop gradient */
+body.sf-fullscreen-disabled.sf-expanded aside[data-testid=now-playing-bar] {
+    background: linear-gradient(to bottom,
+        /* Stop 1: Top edge starts with theme color */
+        color-mix(in srgb, var(--cinema-mode-bg-color-to, #282828), transparent 30%) 0%,
+        /* Stop 2: Theme color stays pure until this point (Change 30% to move black UP or DOWN) */
+        /*color-mix(in srgb, var(--cinema-mode-bg-color-to, #282828), transparent 30%) 30%, */
+        /* Stop 3: Fade into deep weighted black at the bottom */
+        rgba(0, 0, 0, 0.95) 100%) !important;
+
+    backdrop-filter: blur(40px) saturate(170%);
+    -webkit-backdrop-filter: blur(40px) saturate(170%);
+
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -12px 30px rgba(0,0,0,0.6);
 }
 
 aside[data-testid=now-playing-bar]>div:first-child {

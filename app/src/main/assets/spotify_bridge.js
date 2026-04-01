@@ -404,6 +404,24 @@
             let im = document.querySelector('img[data-testid=cover-art-image]');
             if (im) window.cover = im.src;
             else window.cover = null;
+
+            // Updated Robust Color Extraction: specifically look for visible CinemaMode container
+            if (document.body.classList.contains('sf-expanded')) {
+
+                //let cs = Array.from(document.querySelectorAll('div[style*="--cinema-mode-bg-color-from"]'))
+                //              .find(el => el.offsetParent !== null || el.getClientRects().length > 0);
+
+                let candidates = Array.from(document.querySelectorAll('div[style*="--cinema-mode-bg-color-from"]'));
+                let cs = candidates.find(el => el.offsetParent !== null || el.getClientRects().length > 0) || candidates[candidates.length - 1];
+
+                if (cs) {
+                    ['--cinema-mode-bg-color-from', '--cinema-mode-bg-color-to', '--background-base'].forEach(v => {
+                        let val = cs.style.getPropertyValue(v).trim();
+                        if (val) document.body.style.setProperty(v, val);
+                    });
+                }
+            }
+
             updMedia(once);
         };
 
@@ -456,8 +474,14 @@
                 }
                 let minBtn = document.querySelector('button[aria-label*="Minimize"], button[aria-label*="Back to player"]');
                 let isVis = minBtn && (minBtn.offsetParent !== null || minBtn.offsetWidth > 0);
-                if (isVis) document.body.classList.add('sf-expanded');
-                else document.body.classList.remove('sf-expanded');
+                if (isVis) {
+                    document.body.classList.add('sf-expanded');
+                } else {
+                    document.body.classList.remove('sf-expanded');
+                    ['--background-base', '--background-highlight', '--background-press', '--cinema-mode-bg-color-from', '--cinema-mode-bg-color-to'].forEach(v => {
+                        document.body.style.removeProperty(v);
+                    });
+                }
 
                 let ub = document.querySelector('button[data-testid=user-widget-link]:not(.fuckd)');
                 if (ub) {
