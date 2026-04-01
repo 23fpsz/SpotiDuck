@@ -1,6 +1,12 @@
 # Spotifuck Changelog
 
-## v1.1.1 (Work in Progress)
+## v1.1.1
+- **Now Playing & Canvas Improvements**:
+    - **Dynamic Gradient Sync**: Fixed an issue where the player bar gradient would only update for the first song; it now correctly synchronizes with the album art colors on every track change.
+    - **Deep Glass Effect**: Implemented a high-end "frosted glass" effect for the expanded player controls with 40px blur and 170% saturation, matching the premium look of the native full-screen view.
+    - **Weighted Gradient**: Refined the control bar gradient to flow into a deep, weighted black at the bottom for better visual grounding and depth.
+    - **Robust Color Extraction**: Improved the Javascript bridge to specifically target visible UI elements, preventing "black player" glitches during song transitions.
+    - **Canvas Reliability**: Fixed several issues where Canvas video backgrounds wouldn't correctly hide or show when toggling settings.
 - **Performance & Battery Optimizations**:
     - **Widget Efficiency**: Migrated the home screen widget timer to `RemoteViews.setChronometer()`, offloading 1-second ticking to the System UI.
     - **Reduced CPU Usage**: Decreased widget background update frequency from 500ms to 2000ms, significantly extending battery life during playback.
