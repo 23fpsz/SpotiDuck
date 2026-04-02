@@ -1,8 +1,22 @@
 import java.util.Properties
 import java.io.FileInputStream
+import java.io.ByteArrayOutputStream
 
 plugins {
     alias(libs.plugins.android.application)
+}
+
+// Function to get the current Git commit hash using ProcessBuilder to avoid Gradle DSL scoping issues
+fun getGitCommitHash(): String {
+    return try {
+        val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+            .start()
+        val hash = process.inputStream.bufferedReader().readText().trim()
+        process.waitFor()
+        if (hash.isNotEmpty()) hash else "unknown"
+    } catch (e: Exception) {
+        "unknown"
+    }
 }
 
 android {
@@ -28,12 +42,20 @@ android {
 
     signingConfigs {
         create("release") {
-            // Use properties from local.properties if they exist, otherwise use defaults
-            val path = keystoreProperties["signing.storeFile"] as String? ?: "../Apk Key"
-            storeFile = file(path)
-            storePassword = keystoreProperties["signing.storePassword"] as String? ?: "Overlord@2001"
-            keyAlias = keystoreProperties["signing.keyAlias"] as String? ?: "Spotifuck"
-            keyPassword = keystoreProperties["signing.keyPassword"] as String? ?: "Overlord@2001"
+            // Priority: Environment Variables (GitHub CI) -> local.properties (Local PC) -> Defaults
+            val envStoreFile = System.getenv("RELEASE_STORE_FILE")
+            if (envStoreFile != null) {
+                storeFile = file(envStoreFile)
+                storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            } else {
+                val path = keystoreProperties["signing.storeFile"] as String? ?: "../Apk Key"
+                storeFile = file(path)
+                storePassword = keystoreProperties["signing.storePassword"] as String? ?: "Overlord@2001"
+                keyAlias = keystoreProperties["signing.keyAlias"] as String? ?: "Spotifuck"
+                keyPassword = keystoreProperties["signing.keyPassword"] as String? ?: "Overlord@2001"
+            }
         }
     }
 
@@ -44,13 +66,12 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
-            //versionNameSuffix = " β"
             manifestPlaceholders["appName"] = "SpotiDuck β"
             resValue("string", "app_name", "SpotiDuck β")
         }
         release {
-            isMinifyEnabled = true // Enables code shrinking, obfuscation, and optimization
-            isShrinkResources = true // Enables resource shrinking (removes unused icons/layouts)
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
 
             manifestPlaceholders["appName"] = "SpotiDuck"
@@ -78,14 +99,21 @@ androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
             if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
-                val baseName = "SpotiDuck-v${android.defaultConfig.versionName}"
-                output.outputFileName.set(if (variant.name == "debug") {
-                    // If you want the debug APK to still have "-debug" in the filename, keep this.
-                    // Otherwise, change to "$baseName.apk"
-                    "$baseName-debug.apk"
+                val isCI = System.getenv("GITHUB_ACTIONS") == "true"
+                val versionName = android.defaultConfig.versionName
+                val baseName = "SpotiDuck-v$versionName"
+                
+                if (isCI && variant.name == "debug") {
+                    // Automated Debug build gets the commit hash, no -debug suffix
+                    val commitHash = getGitCommitHash()
+                    output.outputFileName.set("$baseName-$commitHash.apk")
+                } else if (variant.name == "debug") {
+                    // Local Debug build keeps -debug suffix
+                    output.outputFileName.set("$baseName-debug.apk")
                 } else {
-                    "$baseName.apk"
-                })
+                    // Release builds (Local or CI) keep -version
+                    output.outputFileName.set("$baseName.apk")
+                }
             }
         }
     }
