@@ -76,7 +76,7 @@ class WebService : MediaBrowserServiceCompat() {
 
                     shuffleIconResId = when (shuffleState) {
                         "true" -> R.drawable.shuffle
-                        "mixed" -> R.drawable.ic_smart_shuffle
+                        "mixed" -> R.drawable.smart_shuffle
                         else -> R.drawable.repoff
                     }
                     stateBuilder.addCustomAction(PlaybackStateCompat.CustomAction.Builder("SHUFFLE_ACTION", "Shuffle", shuffleIconResId).build())
