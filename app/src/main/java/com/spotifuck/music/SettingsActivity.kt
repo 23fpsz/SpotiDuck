@@ -61,6 +61,7 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
             }
             "Amoled" -> {
                 AppSingleton.isAmoled = sharedPreferences.getBoolean(key, false)
+                AppSingleton.pushLiveUpdate()
                 recreate()
             }
             "SwipeStop" -> {
@@ -71,6 +72,7 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
             }
             "TakeControl" -> {
                 AppSingleton.takeControl = sharedPreferences.getBoolean(key, true)
+                AppSingleton.pushLiveUpdate()
             }
             "BTAP" -> {
                 AppSingleton.btPlay = sharedPreferences.getBoolean(key, false)
@@ -89,36 +91,34 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
             }
             "APlayMode" -> {
                 AppSingleton.autoPlayMode = sharedPreferences.getString(key, "disabled")
+                AppSingleton.pushLiveUpdate()
             }
             "AndAuto" -> {
                 AppSingleton.isAndAutoEnabled = sharedPreferences.getBoolean(key, true)
             }
             "CloseNowPlay" -> {
                 AppSingleton.closeNowPlay = sharedPreferences.getBoolean(key, false)
+                AppSingleton.pushLiveUpdate()
             }
             "ExpandedFullScreen" -> {
                 AppSingleton.isFullScreenEnabled = sharedPreferences.getBoolean(key, true)
+                AppSingleton.pushLiveUpdate()
             }
             "ForceEn" -> {
                 AppSingleton.isForceEn = sharedPreferences.getBoolean(key, false)
+                MainActivity.shouldReloadWebView = true
             }
             "AutoShut" -> {
                 AppSingleton.autoShutMinutes = sharedPreferences.getString(key, "0")?.toInt() ?: 0
             }
             "GuiMode" -> {
                 AppSingleton.guiMode = sharedPreferences.getString(key, "csshack")
+                MainActivity.shouldReloadWebView = true
             }
             "DisableCanvas" -> {
                 AppSingleton.isCanvasDisabled = sharedPreferences.getBoolean(key, true)
+                AppSingleton.pushLiveUpdate()
             }
-        }
-
-        val refreshKeys = listOf(
-            "GuiMode", "DisableCanvas", "Amoled", "ForceEn", 
-            "ExpandedFullScreen", "APlayMode"
-        )
-        if (refreshKeys.contains(key)) {
-            MainActivity.shouldReloadWebView = true
         }
     }
 

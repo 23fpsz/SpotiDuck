@@ -15,6 +15,50 @@
     let cssint = null;
     let aaint = null;
 
+    // Live Settings Update Function
+    window.SF_UPDATE = function(config) {
+        if (!config) return;
+        window.SF_CONFIG = Object.assign(window.SF_CONFIG || {}, config);
+
+        // Handle Canvas Toggle
+        if (typeof config.isCanvasDisabled !== 'undefined') {
+            if (config.isCanvasDisabled) {
+                document.body.classList.add('sf-hide-canvas');
+                document.body.classList.remove('sf-video-bg');
+            } else {
+                document.body.classList.remove('sf-hide-canvas');
+                document.body.classList.add('sf-video-bg');
+            }
+        }
+
+        // Handle Fullscreen Toggle
+        if (typeof config.isFullScreenEnabled !== 'undefined') {
+            if (config.isFullScreenEnabled) {
+                document.body.classList.add('sf-fullscreen-enabled');
+                document.body.classList.remove('sf-fullscreen-disabled');
+            } else {
+                document.body.classList.remove('sf-fullscreen-enabled');
+                document.body.classList.add('sf-fullscreen-disabled');
+            }
+        }
+
+        // Handle Amoled Toggle (Internal style override)
+        if (typeof config.isAmoled !== 'undefined') {
+            const amStyleId = 'sf-amoled-override';
+            let style = document.getElementById(amStyleId);
+            if (config.isAmoled) {
+                if (!style) {
+                    style = document.createElement('style');
+                    style.id = amStyleId;
+                    style.textContent = '.encore-dark-theme{--background-base:#000!important;--background-highlight:#000!important;--background-elevated-base:#000!important;--background-elevated-highlight:#000!important;--background-elevated-press:#000!important;--background-tinted-base:#000!important} aside[data-testid=now-playing-bar]{background:#000!important;box-shadow:none;border-top:1px solid #666}';
+                    document.head.appendChild(style);
+                }
+            } else if (style) {
+                style.remove();
+            }
+        }
+    };
+
     window.updMedia = function(force = false) {
         const currState = (window.track || "") + '|' + (window.artist || "") + '|' + window.playing + '|' + (window.repmode || "") + '|' + (window.shmode || "") + '|' + window.isfav;
         if (force || currState !== lastState) {
@@ -405,7 +449,7 @@
             if (im) window.cover = im.src;
             else window.cover = null;
 
-            // Updated Robust Color Extraction: specifically look for visible CinemaMode container
+            // Robust Color Extraction
             if (document.body.classList.contains('sf-expanded')) {
 
                 //let cs = Array.from(document.querySelectorAll('div[style*="--cinema-mode-bg-color-from"]'))

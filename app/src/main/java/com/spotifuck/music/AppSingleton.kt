@@ -62,6 +62,17 @@ class AppSingleton : Application() {
         }
 
         @JvmStatic
+        fun pushLiveUpdate() {
+            val json = String.format(
+                "{ isCanvasDisabled: %b, isFullScreenEnabled: %b, isAmoled: %b, closeNowPlay: %b, takeControl: %b, autoPlayMode: '%s' }",
+                isCanvasDisabled, isFullScreenEnabled, isAmoled, closeNowPlay, takeControl, autoPlayMode
+            )
+            globalWebView?.post {
+                globalWebView?.evaluateJavascript("if(window.SF_UPDATE) window.SF_UPDATE($json);", null)
+            }
+        }
+
+        @JvmStatic
         fun getAssetFile(fileName: String): String {
             val cached = assetCache[fileName]
             if (cached != null) return cached
