@@ -29,6 +29,23 @@
                 document.body.classList.remove('sf-hide-canvas');
                 document.body.classList.add('sf-video-bg');
             }
+
+            // Sync with Spotify internal settings
+            // 1. Immediate attempt if button exists
+            let cv = document.getElementById('settings.canvasVideos');
+            if (cv) {
+                let shouldBeChecked = !config.isCanvasDisabled;
+                if (cv.checked !== shouldBeChecked) cv.click();
+            }
+
+            // 2. Direct API Sync (This works even when the Settings page is NOT open)
+            // We spoof the persistent storage that Spotify uses for these toggles
+            try {
+                const key = 'canvas-videos-enabled';
+                localStorage.setItem(key, (!config.isCanvasDisabled).toString());
+                // Some versions of the web player also use this:
+                localStorage.setItem('can-play-canvas', (!config.isCanvasDisabled).toString());
+            } catch(e) {}
         }
 
         // Handle Fullscreen Toggle
@@ -89,6 +106,12 @@
     window.fetch = async function(...args) {
         const [url, opts] = args;
         const method = opts?.method?.toUpperCase?.() || 'GET';
+
+        // INTERCEPT Canvas Requests if disabled
+        if (window.SF_CONFIG.isCanvasDisabled && (url.includes('canvas-storage') || url.includes('/v1/canvas'))) {
+             return new Response(JSON.stringify({canvases:[]}), {status: 200});
+        }
+
         const headers = opts?.headers || {};
         if (method === 'POST' && url.includes('/track-playback/v1/devices') && opts?.body) {
             const body = JSON.parse(opts.body);
