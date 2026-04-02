@@ -45,16 +45,16 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             //versionNameSuffix = " β"
-            manifestPlaceholders["appName"] = "Spotifuck β"
-            resValue("string", "app_name", "Spotifuck β")
+            manifestPlaceholders["appName"] = "SpotiDuck β"
+            resValue("string", "app_name", "SpotiDuck β")
         }
         release {
             isMinifyEnabled = true // Enables code shrinking, obfuscation, and optimization
             isShrinkResources = true // Enables resource shrinking (removes unused icons/layouts)
             signingConfig = signingConfigs.getByName("release")
 
-            manifestPlaceholders["appName"] = "Spotifuck"
-            resValue("string", "app_name", "Spotifuck")
+            manifestPlaceholders["appName"] = "SpotiDuck"
+            resValue("string", "app_name", "SpotiDuck")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -78,7 +78,7 @@ androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
             if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
-                val baseName = "Spotifuck-v${android.defaultConfig.versionName}"
+                val baseName = "SpotiDuck-v${android.defaultConfig.versionName}"
                 output.outputFileName.set(if (variant.name == "debug") {
                     // If you want the debug APK to still have "-debug" in the filename, keep this.
                     // Otherwise, change to "$baseName.apk"

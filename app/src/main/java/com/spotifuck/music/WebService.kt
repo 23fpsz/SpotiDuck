@@ -156,7 +156,7 @@ class WebService : MediaBrowserServiceCompat() {
         sInstance = this
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel("SpotifuckChannel", "Spotifuck Background Service", NotificationManager.IMPORTANCE_LOW)
+            val channel = NotificationChannel("SpotifuckChannel", getString(R.string.app_name) + " Background Service", NotificationManager.IMPORTANCE_LOW)
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
             manager?.createNotificationChannel(channel)
         }
@@ -200,7 +200,7 @@ class WebService : MediaBrowserServiceCompat() {
         }
 
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Spotifuck:KeepAlive")
+        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getString(R.string.app_name) + ":KeepAlive")
         mWakeLock.setReferenceCounted(false)
     }
 
@@ -224,7 +224,7 @@ class WebService : MediaBrowserServiceCompat() {
     }
 
     private fun setupMediaSession() {
-        mMediaSession = MediaSessionCompat(this, "Spotifuck").apply {
+        mMediaSession = MediaSessionCompat(this, getString(R.string.app_name)).apply {
             setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
             setCallback(MediaSessionCallback())
             isActive = true
