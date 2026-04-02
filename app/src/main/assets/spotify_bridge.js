@@ -15,6 +15,9 @@
     let cssint = null;
     let aaint = null;
 
+    // Robust Selector: Avoids temp minified classes
+    const canvasSelector = '#VideoPlayerNpv_ReactPortal video, .canvasVideoContainerNPV video, [data-testid="track-visual-enhancement"] ~ div video, [data-testid="canvas-video"] video, .VideoPlayer__container video';
+
     // Live Settings Update Function
     window.SF_UPDATE = function(config) {
         if (!config) return;
@@ -41,9 +44,7 @@
             // 2. Direct API Sync (This works even when the Settings page is NOT open)
             // We spoof the persistent storage that Spotify uses for these toggles
             try {
-                const key = 'canvas-videos-enabled';
-                localStorage.setItem(key, (!config.isCanvasDisabled).toString());
-                // Some versions of the web player also use this:
+                localStorage.setItem('canvas-videos-enabled', (!config.isCanvasDisabled).toString());
                 localStorage.setItem('can-play-canvas', (!config.isCanvasDisabled).toString());
             } catch(e) {}
         }
@@ -59,7 +60,7 @@
             }
         }
 
-        // Handle Amoled Toggle (Internal style override)
+        // Handle Amoled Toggle
         if (typeof config.isAmoled !== 'undefined') {
             const amStyleId = 'sf-amoled-override';
             let style = document.getElementById(amStyleId);
@@ -168,8 +169,10 @@
     window.firstFuck = function() {
         if (pfint) clearInterval(pfint);
         pfint = setInterval(() => {
-            if (window.playing && document.visibilityState == 'hidden' && !!document.querySelector('.VideoPlayer__container video')) AndBridge.wakeUp();
-            else if (!AndBridge.isWoke() && document.visibilityState == 'visible' && !document.querySelector('.VideoPlayer__container video')) AndBridge.wakeOff();
+            // Only wake if playing, hidden, and Canvas is ALLOWED and PRESENT
+            let hasCanvas = !window.SF_CONFIG.isCanvasDisabled && !!document.querySelector(canvasSelector);
+            if (window.playing && document.visibilityState == 'hidden' && hasCanvas) AndBridge.wakeUp();
+            else if (!AndBridge.isWoke() && document.visibilityState == 'visible' && !hasCanvas) AndBridge.wakeOff();
 
             if (window.SF_CONFIG.guiMode === "csshack") {
                 if (typeof window.npBtn == 'undefined') {
@@ -229,7 +232,8 @@
         if (enable) {
             if (document.visibilityState == 'hidden') AndBridge.wakeUp();
         } else {
-            if (!AndBridge.isWoke() && document.visibilityState == 'visible' && !document.querySelector('.VideoPlayer__container video')) AndBridge.wakeOff();
+            let hasCanvas = !window.SF_CONFIG.isCanvasDisabled && !!document.querySelector(canvasSelector);
+            if (!AndBridge.isWoke() && document.visibilityState == 'visible' && !hasCanvas) AndBridge.wakeOff();
         }
     };
 
@@ -363,7 +367,48 @@
     window.addGlobalCleanup = function() {
         let gst = document.createElement('style');
         gst.id = 'global-cleanup-style';
-        gst.textContent = 'div[data-encore-id=banner],#global-nav-bar>div:first-of-type,#global-nav-bar a[href="/download"],div.main-view-container__mh-footer-container,button[data-testid="open-in-desktop-app"],[data-testid="desktop-client-button"],a[href="/download"],button[aria-label="Open in Desktop app"],[aria-label="Download Spotify"],[data-testid="top-bar-download-button"],a[href*="desktop-download"],button[aria-label*="Download"],#Desktop_LeftSidebar_Id a[href*="/download"],#Desktop_LeftSidebar_Id button[aria-label*="Download"]{display:none!important}';
+        gst.textContent = `
+            div[data-encore-id=banner],
+            #global-nav-bar>div:first-of-type,
+            #global-nav-bar a[href="/download"],
+            div.main-view-container__mh-footer-container,
+            button[data-testid="open-in-desktop-app"],
+            [data-testid="desktop-client-button"],
+            a[href="/download"],
+            button[aria-label="Open in Desktop app"],
+            [aria-label="Download Spotify"],
+            [data-testid="top-bar-download-button"],
+            a[href*="desktop-download"],
+            button[aria-label*="Download"],
+            #Desktop_LeftSidebar_Id a[href*="/download"],
+            #Desktop_LeftSidebar_Id button[aria-label*="Download"] {
+                display: none !important;
+            }
+
+            /* Force Album Art over Canvas when disabled */
+            .sf-hide-canvas .canvasVideoContainerNPV,
+            .sf-hide-canvas #VideoPlayerNpv_ReactPortal,
+            .sf-hide-canvas .VideoPlayer__container,
+            .sf-hide-canvas [data-testid="canvas-video"],
+            .sf-hide-canvas [data-testid="track-visual-enhancement"] ~ div:has(video),
+            .sf-hide-canvas [data-testid="track-visual-enhancement"] ~ div video {
+                display: none !important;
+            }
+
+            .sf-hide-canvas [data-testid="track-visual-enhancement"] {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                transform: none !important;
+            }
+
+            .sf-hide-canvas [data-testid="track-visual-enhancement"] img {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        `;
         if (!document.getElementById('global-cleanup-style')) document.head.appendChild(gst);
         if (typeof window.gobserver === 'undefined') {
             window.gobserver = new MutationObserver((mutations) => {
