@@ -14,11 +14,13 @@
     <string name="expand_button_title">Advanced</string>
     <string name="menu_actions">Triggered Actions</string>
     <string name="menu_amoled">Amoled Theme</string>
+    <string name="menu_amoled_sum">⚠️ Requires a manual restart for the changes to be shown</string>
     <string name="menu_andauto">Controls + Android Auto</string>
     <string name="menu_ap_disabled">Disabled</string>
     <string name="menu_ap_mode">AutoPlay Mode</string>
     <string name="menu_ap_onetime">One time at start</string>
     <string name="menu_ap_permanent">Permanent</string>
+    <string name="menu_as_5min">5 minutes</string>
     <string name="menu_as_10min">10 minutes</string>
     <string name="menu_as_15min">15 minutes</string>
     <string name="menu_as_1h">1 hour</string>
