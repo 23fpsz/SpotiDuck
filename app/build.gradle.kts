@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-// Function to get the current Git commit hash using ProcessBuilder to avoid Gradle DSL scoping issues
+// Function to get the current Git commit hash using ProcessBuilder
 fun getGitCommitHash(): String {
     return try {
         val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
@@ -42,7 +42,7 @@ android {
 
     signingConfigs {
         create("release") {
-            // Priority: Environment Variables (GitHub CI) -> local.properties (Local PC) -> Defaults
+            // Priority: Environment Variables (GitHub CI) -> local.properties (Local PC)
             val envStoreFile = System.getenv("RELEASE_STORE_FILE")
             if (envStoreFile != null) {
                 storeFile = file(envStoreFile)
@@ -50,11 +50,13 @@ android {
                 keyAlias = System.getenv("RELEASE_KEY_ALIAS")
                 keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
             } else {
-                val path = keystoreProperties["signing.storeFile"] as String? ?: "../Apk Key"
-                storeFile = file(path)
-                storePassword = keystoreProperties["signing.storePassword"] as String? ?: "Overlord@2001"
-                keyAlias = keystoreProperties["signing.keyAlias"] as String? ?: "Spotifuck"
-                keyPassword = keystoreProperties["signing.keyPassword"] as String? ?: "Overlord@2001"
+                val path = keystoreProperties["signing.storeFile"] as String?
+                if (path != null) {
+                    storeFile = file(path)
+                    storePassword = keystoreProperties["signing.storePassword"] as String?
+                    keyAlias = keystoreProperties["signing.keyAlias"] as String?
+                    keyPassword = keystoreProperties["signing.keyPassword"] as String?
+                }
             }
         }
     }
@@ -104,14 +106,11 @@ androidComponents {
                 val baseName = "SpotiDuck-v$versionName"
                 
                 if (isCI && variant.name == "debug") {
-                    // Automated Debug build gets the commit hash, no -debug suffix
                     val commitHash = getGitCommitHash()
                     output.outputFileName.set("$baseName-$commitHash.apk")
                 } else if (variant.name == "debug") {
-                    // Local Debug build keeps -debug suffix
                     output.outputFileName.set("$baseName-debug.apk")
                 } else {
-                    // Release builds (Local or CI) keep -version
                     output.outputFileName.set("$baseName.apk")
                 }
             }

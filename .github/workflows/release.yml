@@ -2,9 +2,8 @@ name: Release Build
 
 on:
   push:
-    branches: [ "main", "master" ]
     tags:
-      - 'v*'
+      - 'v*' # ONLY run when a tag starting with 'v' is pushed
 
 jobs:
   build:
@@ -27,6 +26,10 @@ jobs:
       env:
         RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
       run: |
+        if [ -z "$RELEASE_KEYSTORE" ]; then
+          echo "RELEASE_KEYSTORE secret is missing. Skipping signing."
+          exit 1
+        fi
         echo $RELEASE_KEYSTORE | base64 --decode > release.keystore
 
     - name: Grant execute permission for gradlew
@@ -47,7 +50,6 @@ jobs:
         path: app/build/outputs/apk/release/*.apk
 
     - name: Create GitHub Release
-      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
         files: app/build/outputs/apk/release/*.apk
