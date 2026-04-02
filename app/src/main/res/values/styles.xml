@@ -32,15 +32,21 @@
         <item name="colorPrimary">@color/red</item>
         <item name="colorPrimaryDark">@color/dark_red</item>
         <item name="colorAccent">@color/teal_200</item>
+        <item name="colorSecondary">@color/teal_200</item>
         <item name="colorControlActivated">@color/teal_200</item>
 
         <item name="android:textColorPrimary">@color/white</item>
         <item name="android:textColorSecondary">#B3FFFFFF</item>
         <item name="android:textColorTertiary">#80FFFFFF</item>
+
+        <!-- Button styles for Dialogs -->
+        <item name="borderlessButtonStyle">@style/Widget.Spotifuck.Button.Borderless</item>
+        <item name="materialAlertDialogTheme">@style/Theme.Spotifuck.Settings.Dialog</item>
+        <item name="alertDialogTheme">@style/Theme.Spotifuck.Settings.Dialog</item>
     </style>
 
     <!-- Amoled Settings Theme -->
-    <style name="Theme.Spotifuck.Settings.Amoled" parent="Theme.AppCompat.NoActionBar">
+    <style name="Theme.Spotifuck.Settings.Amoled" parent="Theme.MaterialComponents.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:statusBarColor">@android:color/black</item>
@@ -52,11 +58,42 @@
         <item name="colorPrimary">@android:color/black</item>
         <item name="colorPrimaryDark">@android:color/black</item>
         <item name="colorAccent">@color/teal_200</item>
+        <item name="colorSecondary">@color/teal_200</item>
         <item name="colorControlActivated">@color/teal_200</item>
         <item name="colorControlNormal">#B3FFFFFF</item>
         <item name="android:textColorPrimary">@color/white</item>
         <item name="android:textColorSecondary">#B3FFFFFF</item>
         <item name="android:textColorTertiary">#80FFFFFF</item>
+
+        <!-- Button styles for Dialogs -->
+        <item name="borderlessButtonStyle">@style/Widget.Spotifuck.Button.Borderless</item>
+        <item name="materialAlertDialogTheme">@style/Theme.Spotifuck.Settings.Dialog</item>
+        <item name="alertDialogTheme">@style/Theme.Spotifuck.Settings.Dialog</item>
+    </style>
+
+    <style name="Widget.Spotifuck.Button.Borderless" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">@color/teal_200</item>
+    </style>
+
+    <!-- Dialog Theme: Forced Dark Background, White Text, and Teal Buttons -->
+    <style name="Theme.Spotifuck.Settings.Dialog" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="colorPrimary">@color/teal_200</item>
+        <item name="colorAccent">@color/teal_200</item>
+        <item name="colorControlActivated">@color/teal_200</item>
+        <item name="android:windowBackground">@color/spotify_black</item>
+
+        <!-- Force text to be white regardless of system light/dark mode -->
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">#B3FFFFFF</item>
+        <item name="android:textColorAlertDialogListItem">@color/white</item>
+
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Spotifuck.Button.Dialog</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Spotifuck.Button.Dialog</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.Spotifuck.Button.Dialog</item>
+    </style>
+
+    <style name="Widget.Spotifuck.Button.Dialog" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:textColor">@color/teal_200</item>
     </style>
 
     <style name="overflowStyle" parent="Widget.AppCompat.ActionButton.Overflow">

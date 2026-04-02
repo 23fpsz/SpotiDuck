@@ -55,16 +55,16 @@
             app:key="AndAuto"
             app:title="@string/menu_andauto" />
         <SwitchPreference
-            app:defaultValue="false"
-            app:icon="@drawable/amoled"
-            app:key="Amoled"
-            app:title="@string/menu_amoled" />
-        <SwitchPreference
             app:defaultValue="true"
             app:icon="@drawable/guimode"
             app:key="ExpandedFullScreen"
-            app:title="Immersive Full-screen"
-            app:summary="Force expanded view to cover the entire screen" />
+            app:title="Immersive Full-screen" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/amoled"
+            app:key="Amoled"
+            app:summary="@string/menu_amoled_sum"
+            app:title="@string/menu_amoled" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/menu_actions">

@@ -14,7 +14,7 @@
     <string name="expand_button_title">Advanced</string>
     <string name="menu_actions">Triggered Actions</string>
     <string name="menu_amoled">Amoled Theme</string>
-    <string name="menu_amoled_sum">⚠️ Requires a manual restart for the changes to be shown</string>
+    <string name="menu_amoled_sum">⚠️ Requires a manual restart</string>
     <string name="menu_andauto">Controls + Android Auto</string>
     <string name="menu_ap_disabled">Disabled</string>
     <string name="menu_ap_mode">AutoPlay Mode</string>
