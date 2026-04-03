@@ -75,7 +75,8 @@ div[data-testid=tracklist-row] button:not([data-testid=add-to-playlist-button]) 
     height: 32px;
     padding: 0;
     border-radius: 50%;
-    transition: all 0.2s ease;
+    /* Optimized transition */
+    transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
     /* Layer 3: Top Controls */
     z-index: calc(var(--above-everything-grid-area-z-index) + 10);
 }
@@ -103,6 +104,8 @@ aside[data-testid=now-playing-bar] {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     background: var(--background-base, #121212) !important;
     display: flex !important;
+    /* Hardware acceleration hint */
+    will-change: transform, opacity;
     /* Layer 3: Top Controls */
     z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
 }
@@ -316,16 +319,30 @@ body.sf-fullscreen-enabled.sf-expanded aside[data-testid=now-playing-view] [data
     margin-bottom: 120px !important;
 }
 
-body.sf-fullscreen-disabled.sf-expanded aside[data-testid=now-playing-bar],
-body.sf-fullscreen-disabled.sf-expanded [data-testid=now-playing-widget],
-body.sf-fullscreen-disabled.sf-expanded [data-testid=player-controls],
-body.sf-fullscreen-disabled.sf-expanded [data-testid=playback-progressbar],
-body.sf-fullscreen-disabled.sf-expanded [data-testid=now-playing-view-top-bar],
-body.sf-fullscreen-disabled.sf-expanded #global-nav-bar {
+/* FORCE VISIBILITY FOR PLAYER CONTROLS (EXPANDED MODE) */
+body.sf-expanded aside[data-testid=now-playing-bar],
+body.sf-expanded aside[data-testid=now-playing-bar] * {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
-    transform: none !important;
-    /* Layer 3: Top Controls */
+}
+
+body.sf-expanded aside[data-testid=now-playing-bar] {
+    display: flex !important;
+    /* Removed transform: none to allow Spotify's slide-up animation */
+    /* If it still hides, we will use a smoother override */
+    z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
+}
+
+body.sf-expanded [data-testid=now-playing-widget],
+body.sf-expanded [data-testid=player-controls],
+body.sf-expanded [data-testid=playback-progressbar],
+body.sf-expanded [data-testid=now-playing-view-top-bar],
+body.sf-expanded #global-nav-bar {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    /* Hardware acceleration for smoother visibility transitions */
+    will-change: opacity, transform;
     z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
 }
