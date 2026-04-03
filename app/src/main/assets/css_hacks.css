@@ -76,6 +76,8 @@ div[data-testid=tracklist-row] button:not([data-testid=add-to-playlist-button]) 
     padding: 0;
     border-radius: 50%;
     transition: all 0.2s ease;
+    /* Layer 3: Top Controls */
+    z-index: calc(var(--above-everything-grid-area-z-index) + 10);
 }
 
 .npbtn:active {
@@ -101,6 +103,8 @@ aside[data-testid=now-playing-bar] {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     background: var(--background-base, #121212) !important;
     display: flex !important;
+    /* Layer 3: Top Controls */
+    z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
 }
 
 /* DEEP GLASS EFFECT: Tunable 3-stop gradient */
@@ -159,7 +163,8 @@ div[data-testid=now-playing-widget] {
 }
 
 form[role=search] {
-    z-index: 10;
+    /* Layer 2: Overlay Controls */
+    z-index: calc(var(--above-everything-grid-area-z-index) + 5);
     margin-left: 48px;
     max-width: 88%;
 }
@@ -182,7 +187,8 @@ div[data-testid=now-playing-widget]>div:nth-child(2) span {
 aside[data-testid="now-playing-view"],
 aside[data-testid="right-sidebar"],
 #Desktop_PanelContainer_Id {
-    z-index: 200000;
+    /* Layer 0: Fullscreen View */
+    z-index: var(--above-everything-grid-area-z-index);
 }
 
 /* Canvas / Background logic styles */
@@ -274,7 +280,8 @@ body.sf-fullscreen-enabled.sf-expanded #Desktop_PanelContainer_Id {
     width: 100vw !important;
     height: 100vh !important;
     bottom: 0 !important;
-    z-index: 200000 !important;
+    /* Layer 0: Fullscreen View */
+    z-index: var(--above-everything-grid-area-z-index) !important;
     background: transparent !important;
 }
 
@@ -287,6 +294,8 @@ body.sf-fullscreen-enabled.sf-expanded aside[data-testid=now-playing-bar] {
     backdrop-filter: blur(25px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 8px;
+    /* Layer 3: Top Controls */
+    z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
 }
 
 /* Stable Album art positioning override */
@@ -317,5 +326,6 @@ body.sf-fullscreen-disabled.sf-expanded #global-nav-bar {
     visibility: visible !important;
     pointer-events: auto !important;
     transform: none !important;
-    z-index: 1000000 !important;
+    /* Layer 3: Top Controls */
+    z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
 }

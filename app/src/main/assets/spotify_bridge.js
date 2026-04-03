@@ -385,6 +385,14 @@
                 display: none !important;
             }
 
+            /* Fix for player visibility in expanded view and library overlay */
+            aside[data-testid="now-playing-bar"],
+            .lbtn {
+                z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
             /* Force Album Art over Canvas when disabled */
             .sf-hide-canvas .canvasVideoContainerNPV,
             .sf-hide-canvas #VideoPlayerNpv_ReactPortal,
@@ -550,7 +558,7 @@
                 if (lb) {
                     window.lBtn = lb;
                     lb.classList.add('fuckd', 'lbtn');
-                    lb.style.padding = 0;
+                    lb.style.padding = '0px';
                     lb.style.height = '20px';
                     lb.addEventListener('click', function() { setTimeout(() => switchLs(), 0) });
                     switchLs();
@@ -605,25 +613,29 @@
             window.switchLs = function() {
                 let ls = document.querySelector('#Desktop_LeftSidebar_Id');
                 if (ls) {
-                    let exp = ls.querySelector('nav>div>div:first-child').classList.length;
+                    let navDiv = ls.querySelector('nav>div>div:first-child');
+                    if (!navDiv) return;
+                    let exp = navDiv.classList.length;
                     if (exp == 2) {
-                        ls.style.position = 'fixed';
-                        ls.style.width = '100%';
-                        ls.style.height = 'calc(100vh - 48px)';
-                        ls.style.top = '48px';
-                        ls.style.bottom = '0px';
-                        ls.style.left = '0px';
-                        ls.style.overflowY = 'auto';
-                        ls.style.zIndex = 200000;
+                        ls.style.setProperty('position', 'fixed', 'important');
+                        ls.style.setProperty('width', '100%', 'important');
+                        ls.style.setProperty('height', 'calc(100vh - 48px)', 'important');
+                        ls.style.setProperty('top', '48px', 'important');
+                        ls.style.setProperty('bottom', '0px', 'important');
+                        ls.style.setProperty('left', '0px', 'important');
+                        ls.style.setProperty('overflow-y', 'auto', 'important');
+                        ls.style.setProperty('z-index', 'calc(var(--above-everything-grid-area-z-index) + 5)', 'important');
                         let lh = ls.querySelector('header>div>div:first-child h1');
-                        lh.innerHTML = '✖ &nbsp; ' + window.SF_CONFIG.closeLibText;
+                        if (lh) lh.innerHTML = '✖ &nbsp; ' + (window.SF_CONFIG?.closeLibText || "Library");
                     } else {
-                        ls.style.zIndex = 1;
-                        ls.style.position = 'fixed';
-                        ls.style.top = '0';
-                        ls.style.left = '60px';
-                        ls.style.width = '48px';
-                        ls.style.height = '48px';
+                        ls.style.setProperty('z-index', '1', 'important');
+                        ls.style.setProperty('position', 'fixed', 'important');
+                        ls.style.setProperty('top', '0px', 'important');
+                        ls.style.setProperty('left', '60px', 'important');
+                        ls.style.setProperty('width', '48px', 'important');
+                        ls.style.setProperty('height', '48px', 'important');
+                        ls.style.removeProperty('bottom');
+                        ls.style.removeProperty('overflow-y');
                     }
                 }
             };
