@@ -609,9 +609,11 @@
                     if (exp == 2) {
                         ls.style.position = 'fixed';
                         ls.style.width = '100%';
-                        ls.style.height = '100%';
-                        ls.style.top = 0;
-                        ls.style.left = 0;
+                        ls.style.height = 'calc(100vh - 48px)';
+                        ls.style.top = '48px';
+                        ls.style.bottom = '0px';
+                        ls.style.left = '0px';
+                        ls.style.overflowY = 'auto';
                         ls.style.zIndex = 200000;
                         let lh = ls.querySelector('header>div>div:first-child h1');
                         lh.innerHTML = '✖ &nbsp; ' + window.SF_CONFIG.closeLibText;
