@@ -191,12 +191,6 @@ class WebService : MediaBrowserServiceCompat() {
                 }
             }
             mAudioManager?.registerAudioDeviceCallback(mAudioDeviceCallback, Handler(Looper.getMainLooper()))
-        } else {
-            val filter = IntentFilter().apply {
-                addAction("android.intent.action.HEADSET_PLUG")
-                addAction("android.bluetooth.headset.profile.action.CONNECTION_STATE_CHANGED")
-            }
-            registerReceiver(MediaActionReceiver(), filter)
         }
 
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -304,6 +298,9 @@ class WebService : MediaBrowserServiceCompat() {
             AppSingleton.globalWebView = null
         }
         AppSingleton.isPlayerLoaded = false
+        AppSingleton.cleanup()
+        sInstance = null
+        albumArt = null
     }
 
     override fun onDestroy() {

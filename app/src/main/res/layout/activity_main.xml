@@ -27,7 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="@string/txt_servicenr"
+                android:text=""
                 android:textColor="#ff888888"
                 android:textSize="24sp"
                 android:textStyle="bold"
@@ -43,7 +43,7 @@
                 android:text="WebView v. N/A"
                 android:textColor="#ffaaaaaa"
                 android:textSize="14sp"
-                android:visibility="visible" />
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/txtMessage"
@@ -63,7 +63,7 @@
         </FrameLayout>
     </com.spotifuck.music.LockableHScrollView>
 
-    <!-- Overlay UI - Settings button with waves logo on white background -->
+    <!-- Overlay UI - Settings button -->
     <ImageButton
         android:id="@+id/btnSettings"
         android:layout_width="40dp"
@@ -79,6 +79,58 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Splash / Error Overlay -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/splashOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/spotify_black"
+        android:elevation="20dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="visible">
+
+        <ImageView
+            android:id="@+id/imgSplashLogo"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:src="@drawable/logo"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <ImageView
+            android:id="@+id/imgSplashError"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/waves_white"
+            android:visibility="gone"
+            android:alpha="0"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/txtSplashError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Network Error\nTap to retry"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:visibility="gone"
+            android:alpha="0"
+            app:layout_constraintTop_toBottomOf="@id/imgSplashError"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- ProgressBar moved to highest elevation to show above splash -->
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleHorizontal"
@@ -87,7 +139,7 @@
         android:indeterminate="true"
         android:indeterminateTint="@color/teal_200"
         android:visibility="invisible"
-        android:elevation="11dp"
+        android:elevation="25dp"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

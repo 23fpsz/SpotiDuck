@@ -3,6 +3,9 @@ package com.spotifuck.music
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -20,6 +23,8 @@ class AppSingleton : Application() {
     companion object {
         @JvmField var autoSleepMinutes: Int = 0
         @JvmField var isPlayerLoaded: Boolean = false
+        @JvmField var isErrorShowing: Boolean = false
+        @JvmField var currentErrorType: Int = -1 // -1: none, 0: service disabled, 1: network error
         @JvmField val shutHandler: Handler = Handler(Looper.getMainLooper())
         @JvmField val sleepHandler: Handler = Handler(Looper.getMainLooper())
         @JvmField var shutRunnable: Runnable? = null
@@ -51,6 +56,15 @@ class AppSingleton : Application() {
         @JvmField var isFullScreenEnabled: Boolean = false
 
         private val assetCache = ConcurrentHashMap<String, String>()
+
+        @JvmStatic
+        fun cleanup() {
+            shutRunnable?.let { shutHandler.removeCallbacks(it) }
+            sleepRunnable?.let { sleepHandler.removeCallbacks(it) }
+            shutRunnable = null
+            sleepRunnable = null
+            isPlayerLoaded = false
+        }
 
         @JvmStatic
         fun notifyUiUpdate() {
@@ -91,6 +105,14 @@ class AppSingleton : Application() {
         }
 
         @JvmStatic
+        fun isNetworkAvailable(): Boolean {
+            val cm = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = cm.activeNetwork ?: return false
+            val activeNetwork = cm.getNetworkCapabilities(network) ?: return false
+            return activeNetwork.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        }
+
+        @JvmStatic
         @JvmOverloads
         fun getWebView(context: Context = appContext): WebView? {
             if (globalWebView == null) {
@@ -113,10 +135,16 @@ class AppSingleton : Application() {
                 globalWebView?.apply {
                     overScrollMode = View.OVER_SCROLL_NEVER
                     scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
-                    setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
                     isLongClickable = false
                     setOnLongClickListener { true }
+
+                    if (MainActivity.shouldClearCookies) {
+                        clearCache(true)
+                        clearFormData()
+                        clearHistory()
+                        android.webkit.WebStorage.getInstance().deleteAllData()
+                    }
 
                     settings.apply {
                         userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
@@ -130,18 +158,27 @@ class AppSingleton : Application() {
                         useWideViewPort = true
                         loadWithOverviewMode = true
                         cacheMode = WebSettings.LOAD_DEFAULT
-                        offscreenPreRaster = true
                     }
 
                     setInitialScale(100)
-                    setBackgroundColor(-12303292)
+                    
+                    if (isAmoled) {
+                        setBackgroundColor(Color.BLACK)
+                    } else {
+                        setBackgroundColor(Color.parseColor("#121212"))
+                    }
+                    
                     addJavascriptInterface(AndBridge(appContext), "AndBridge")
 
                     webChromeClient = SpotifyWebChromeClient()
                     webViewClient = SpotifyWebViewClient()
 
+                    if (MainActivity.shouldClearCookies) {
+                        clearCache(true)
+                    }
+
                     if (!isPlayerLoaded) {
-                        if (isLoggedIn) {
+                        if (isLoggedIn && !MainActivity.shouldClearCookies) {
                             loadUrl("https://open.spotify.com/")
                         } else {
                             loadUrl("https://accounts.spotify.com/login")

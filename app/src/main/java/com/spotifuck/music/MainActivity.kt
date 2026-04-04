@@ -1,23 +1,29 @@
 package com.spotifuck.music
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.lang.ref.WeakReference
@@ -26,15 +32,20 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     var webView: WebView? = null
+    private var splashOverlay: ConstraintLayout? = null
+    private var imgSplashLogo: ImageView? = null
+    private var imgSplashError: ImageView? = null
+    private var txtSplashError: TextView? = null
+
+    private var horizontalScrollView: LockableHScrollView? = null
+    private var webViewContainer: FrameLayout? = null
+    private var backgroundText: TextView? = null
+    private var statusText: TextView? = null
+    private var messageText: TextView? = null
+    private var progressBar: ProgressBar? = null
+    private var serviceIntent: Intent? = null
 
     companion object {
-        @JvmField var horizontalScrollView: LockableHScrollView? = null
-        @JvmField var webViewContainer: FrameLayout? = null
-        @JvmField var backgroundText: TextView? = null
-        @JvmField var statusText: TextView? = null
-        @JvmField var messageText: TextView? = null
-        @JvmField var progressBar: ProgressBar? = null
-        @JvmField var serviceIntent: Intent? = null
         @JvmField var virtualWidth: Int = 0
         @JvmField var isBackButtonPressedOnce: Boolean = false
         @JvmField var isForceEnInitial: Boolean = AppSingleton.isForceEn
@@ -43,36 +54,45 @@ class MainActivity : AppCompatActivity() {
 
         @JvmStatic
         fun showMessage(str: String) {
-            progressBar?.visibility = View.VISIBLE
-            messageText?.let {
-                it.text = str
-                it.visibility = View.VISIBLE
-                it.bringToFront()
-            }
-            Handler(Looper.getMainLooper()).postDelayed({
-                if (AppSingleton.isPlayerLoaded) {
-                    progressBar?.visibility = View.INVISIBLE
+            AppSingleton.activityRef?.get()?.let { activity ->
+                activity.runOnUiThread {
+                    activity.showInstanceMessage(str)
                 }
-                messageText?.visibility = View.GONE
-            }, 2500L)
+            }
         }
 
         @JvmStatic
         fun updateLoadingVisibility() {
-            progressBar?.let {
-                if (AppSingleton.isServiceEnabled && !AppSingleton.isPlayerLoaded) {
-                    it.visibility = View.VISIBLE
-                } else if (AppSingleton.isPlayerLoaded) {
-                    it.visibility = View.INVISIBLE
+            AppSingleton.activityRef?.get()?.let { mainActivity ->
+                mainActivity.runOnUiThread {
+                    mainActivity.syncUiState()
                 }
             }
         }
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val hideMessageRunnable = Runnable {
+        if (AppSingleton.isPlayerLoaded) {
+            progressBar?.visibility = View.INVISIBLE
+        }
+        messageText?.visibility = View.GONE
+    }
+
+    fun showInstanceMessage(str: String) {
+        progressBar?.visibility = View.VISIBLE
+        messageText?.let {
+            it.text = str
+            it.visibility = View.VISIBLE
+            it.bringToFront()
+        }
+        mainHandler.removeCallbacks(hideMessageRunnable)
+        mainHandler.postDelayed(hideMessageRunnable, 2500L)
+    }
 
     override fun onCreate(bundle: Bundle?) {
         super.onCreate(bundle)
+        
         if (AppSingleton.isForceEn) {
             Locale.setDefault(Locale("en"))
         }
@@ -95,6 +115,17 @@ class MainActivity : AppCompatActivity() {
         statusText = findViewById(R.id.frameStatusText)
         messageText = findViewById(R.id.txtMessage)
         
+        splashOverlay = findViewById(R.id.splashOverlay)
+        imgSplashLogo = findViewById(R.id.imgSplashLogo)
+        imgSplashError = findViewById(R.id.imgSplashError)
+        txtSplashError = findViewById(R.id.txtSplashError)
+
+        splashOverlay?.setOnClickListener {
+            if (AppSingleton.isErrorShowing) {
+                retryAction()
+            }
+        }
+
         val userAgentString = WebView(AppSingleton.appContext).settings.userAgentString
         val iIndexOf = userAgentString.indexOf("Chrome/")
         if (iIndexOf != -1) {
@@ -109,22 +140,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnSettings)?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
-        
-        // Ensure service is running if app is opened
-        if (!WebService.isServiceRunning) {
-            AppSingleton.isServiceEnabled = true
-            AppSingleton.prefsEditor.putBoolean("ServiceOn", true).apply()
-        }
 
-        if (AppSingleton.isServiceEnabled) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
-            }
-            setupWebView()
-        }
-        updateLoadingVisibility()
+        syncUiState()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -135,7 +152,7 @@ class MainActivity : AppCompatActivity() {
                         val url = wv.url
                         if (url != null && url != "https://open.spotify.com/" && !url.matches("https://open\\.spotify\\.com/intl-[a-zA-Z]{2}/".toRegex()) && wv.canGoBack()) {
                             wv.goBack()
-                            showMessage(getString(R.string.txt_loadprevious))
+                            showInstanceMessage(getString(R.string.txt_loadprevious))
                         } else if (!isBackButtonPressedOnce) {
                             isBackButtonPressedOnce = true
                             Toast.makeText(AppSingleton.appContext, getString(R.string.txt_pressagain), Toast.LENGTH_SHORT).show()
@@ -147,6 +164,251 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    private fun retryAction() {
+        if (!AppSingleton.isNetworkAvailable()) {
+            Toast.makeText(this, "Network Error\nTap to retry", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (!AppSingleton.isServiceEnabled) {
+            AppSingleton.isServiceEnabled = true
+            AppSingleton.isPlayerLoaded = false
+            AppSingleton.prefsEditor.putBoolean("ServiceOn", true).apply()
+            hideErrorState {
+                restartService()
+            }
+        } else {
+            hideErrorState {
+                restartService()
+            }
+        }
+    }
+
+    private fun restartService() {
+        Log.d("Spotifuck", "Starting manual service restart...")
+        AppSingleton.isPlayerLoaded = false
+        
+        // Clear WebView data if requested
+        if (shouldClearCookies) {
+            Log.d("Spotifuck", "Performing deep clear of cookies and storage...")
+            val cm = CookieManager.getInstance()
+            cm.setAcceptCookie(true) // Ensure manager is active
+            cm.removeSessionCookies(null)
+            cm.removeAllCookies { success ->
+                Log.d("Spotifuck", "Cookies removed: $success")
+                cm.flush()
+            }
+            WebStorage.getInstance().deleteAllData()
+            android.webkit.WebViewDatabase.getInstance(this).clearFormData()
+            android.webkit.WebViewDatabase.getInstance(this).clearHttpAuthUsernamePassword()
+        }
+
+        // 1. Destroy existing WebView immediately
+        webView?.let { wv ->
+            Log.d("Spotifuck", "Removing and destroying old WebView")
+            (wv.parent as? ViewGroup)?.removeView(wv)
+            wv.stopLoading()
+            wv.loadUrl("about:blank")
+            wv.destroy()
+        }
+        webView = null
+        AppSingleton.globalWebView = null
+
+        // 2. Stop the Service explicitly
+        val stopIntent = Intent(this, WebService::class.java).apply {
+            action = "STOP_SERVICE"
+        }
+        startService(stopIntent)
+        
+        // 3. Re-initialize after a clean slate
+        mainHandler.postDelayed({
+            if (!AppSingleton.isNetworkAvailable()) {
+                Log.d("Spotifuck", "No network. Showing error state.")
+                showErrorState(true)
+                return@postDelayed
+            }
+
+            Log.d("Spotifuck", "Cleanup delay over. Starting service fresh.")
+            val startIntent = Intent(this, WebService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(startIntent)
+            } else {
+                startService(startIntent)
+            }
+            
+            // setupWebView calls getWebView() which creates the new WebView
+            setupWebView()
+            syncUiState()
+            
+            // Only reset the flag AFTER setupWebView has been called
+            shouldClearCookies = false
+            
+            Log.d("Spotifuck", "Service restart command sent. UI syncing.")
+        }, 1200) // Increased delay to ensure service stop is processed
+    }
+
+    fun syncUiState() {
+        updateBackgroundColors()
+        
+        val currentUrl = webView?.url ?: ""
+        val isAuthPage = currentUrl.contains("/login") || currentUrl.contains("/auth") || currentUrl.contains("accounts.spotify.com")
+
+        if (!AppSingleton.isServiceEnabled) {
+            progressBar?.visibility = View.INVISIBLE
+            showErrorState(false)
+        } else if (AppSingleton.isErrorShowing) {
+            showErrorState(AppSingleton.currentErrorType == 1)
+        } else if (!AppSingleton.isPlayerLoaded && !isAuthPage) {
+            progressBar?.visibility = View.VISIBLE
+            showSplash()
+        } else {
+            progressBar?.visibility = View.INVISIBLE
+            hideSplash(isAuthPage) // Force hide if on auth page
+        }
+    }
+
+    private fun updateBackgroundColors() {
+        val color = if (AppSingleton.isAmoled) Color.BLACK else Color.parseColor("#121212")
+        splashOverlay?.setBackgroundColor(color)
+        webViewContainer?.setBackgroundColor(color)
+        findViewById<View>(R.id.main)?.setBackgroundColor(color)
+    }
+
+    fun showSplash() {
+        if (AppSingleton.isErrorShowing) {
+            hideErrorState { showSplash() }
+            return
+        }
+        runOnUiThread {
+            splashOverlay?.animate()?.cancel()
+            splashOverlay?.visibility = View.VISIBLE
+            splashOverlay?.alpha = 1f
+            webViewContainer?.visibility = View.INVISIBLE
+            
+            imgSplashLogo?.animate()?.cancel()
+            imgSplashLogo?.alpha = 1f
+            
+            imgSplashError?.animate()?.cancel()
+            imgSplashError?.visibility = View.GONE
+            
+            txtSplashError?.animate()?.cancel()
+            txtSplashError?.visibility = View.GONE
+        }
+    }
+
+    fun showErrorState(isNetworkError: Boolean) {
+        val errorType = if (isNetworkError) 1 else 0
+        if (AppSingleton.isErrorShowing && AppSingleton.currentErrorType == errorType) {
+            // Ensure UI matches the state if it's already "showing" logically but maybe not visually
+            if (splashOverlay?.visibility != View.VISIBLE) {
+                // Force show without animation if it's out of sync
+                splashOverlay?.visibility = View.VISIBLE
+                splashOverlay?.alpha = 1f
+                webViewContainer?.visibility = View.INVISIBLE
+                imgSplashLogo?.alpha = 0f
+                imgSplashError?.visibility = View.VISIBLE
+                imgSplashError?.alpha = 1f
+                val moveUpPx = -50 * (resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
+                imgSplashError?.translationY = moveUpPx
+                txtSplashError?.visibility = View.VISIBLE
+                txtSplashError?.alpha = 1f
+            }
+            return
+        }
+        
+        AppSingleton.isErrorShowing = true
+        AppSingleton.currentErrorType = errorType
+
+        runOnUiThread {
+            splashOverlay?.animate()?.cancel()
+            splashOverlay?.visibility = View.VISIBLE
+            splashOverlay?.alpha = 1f
+            webViewContainer?.visibility = View.INVISIBLE
+            
+            txtSplashError?.text = if (isNetworkError) "Network Error\nTap to retry" else "Service Disabled\nTap to start"
+            
+            imgSplashLogo?.animate()?.cancel()
+            imgSplashLogo?.animate()?.alpha(0f)?.setDuration(300)?.start()
+            
+            val moveUpPx = -50 * (resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
+            
+            imgSplashError?.animate()?.cancel()
+            imgSplashError?.apply {
+                visibility = View.VISIBLE
+                alpha = 0f
+                translationY = 0f
+                animate()
+                    .alpha(1f)
+                    .translationY(moveUpPx)
+                    .setDuration(500)
+                    .setListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            if (AppSingleton.isErrorShowing) {
+                                txtSplashError?.animate()?.cancel()
+                                txtSplashError?.apply {
+                                    visibility = View.VISIBLE
+                                    alpha = 0f
+                                    animate().alpha(1f).setDuration(300).start()
+                                }
+                            }
+                        }
+                    })
+                    .start()
+            }
+        }
+    }
+
+    private fun hideErrorState(onComplete: () -> Unit) {
+        if (!AppSingleton.isErrorShowing) {
+            onComplete()
+            return
+        }
+        AppSingleton.isErrorShowing = false
+        AppSingleton.currentErrorType = -1
+
+        txtSplashError?.animate()?.cancel()
+        txtSplashError?.animate()?.alpha(0f)?.setDuration(200)?.withEndAction {
+            txtSplashError?.visibility = View.GONE
+        }?.start()
+
+        imgSplashError?.animate()?.cancel()
+        imgSplashError?.animate()
+            ?.alpha(0f)
+            ?.translationY(0f)
+            ?.setDuration(400)
+            ?.setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    if (!AppSingleton.isErrorShowing) {
+                        imgSplashError?.visibility = View.GONE
+                        imgSplashLogo?.animate()?.cancel()
+                        imgSplashLogo?.animate()?.alpha(1f)?.setDuration(300)?.withEndAction {
+                            onComplete()
+                        }?.start()
+                    }
+                }
+            })
+            ?.start()
+    }
+
+    fun hideSplash(force: Boolean = false) {
+        if (AppSingleton.isErrorShowing) return
+        runOnUiThread {
+            splashOverlay?.animate()?.cancel()
+            splashOverlay?.animate()
+                ?.alpha(0f)
+                ?.setDuration(500)
+                ?.setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        if (!AppSingleton.isErrorShowing && (AppSingleton.isPlayerLoaded || force)) {
+                            splashOverlay?.visibility = View.GONE
+                            webViewContainer?.visibility = View.VISIBLE
+                        }
+                    }
+                })
+                ?.start()
+        }
     }
 
     fun setupWebView() {
@@ -174,11 +436,12 @@ class MainActivity : AppCompatActivity() {
         }
         
         backgroundText?.text = ""
-        updateLoadingVisibility()
+        syncUiState()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        mainHandler.removeCallbacks(hideMessageRunnable)
         webView?.let { webViewContainer?.removeView(it) }
         AppSingleton.activityRef = null
     }
@@ -191,66 +454,48 @@ class MainActivity : AppCompatActivity() {
             ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
 
-        // Re-enable service if it was auto-shutdown
+        // Centralized Launch/Recovery Logic
         if (!WebService.isServiceRunning) {
             AppSingleton.isServiceEnabled = true
             AppSingleton.prefsEditor.putBoolean("ServiceOn", true).apply()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
+            
+            // Prioritize logout if requested
+            if (shouldClearCookies) {
+                AppSingleton.isLoggedIn = false
+                AppSingleton.prefsEditor.putBoolean("LoggedIn", false).apply()
             }
-            setupWebView()
+
+            if (AppSingleton.isErrorShowing) {
+                hideErrorState { restartService() }
+            } else {
+                restartService()
+            }
+        } else if (shouldClearCookies) {
+            // Service is running but we need to logout/clear
+            AppSingleton.isLoggedIn = false
+            AppSingleton.prefsEditor.putBoolean("LoggedIn", false).apply()
+            restartService()
+        } else {
+            // If running but UI is detached (e.g., after a crash or process swap), re-attach
+            if (AppSingleton.globalWebView == null || AppSingleton.globalWebView?.isAttachedToWindow == false) {
+                setupWebView()
+            }
         }
 
-        if (WebService.isServiceRunning && AppSingleton.globalWebView != null && AppSingleton.globalWebView?.isAttachedToWindow == false) {
-            setupWebView()
-        }
         if (AppSingleton.isForceEn) {
             Locale.setDefault(Locale("en"))
         }
-        if (isForceEnInitial != AppSingleton.isForceEn) {
-            shouldReloadWebView = true
+
+        if (WebService.isServiceRunning && AppSingleton.isPlayerLoaded) {
+            hideSplash()
         }
-        isForceEnInitial = AppSingleton.isForceEn
-        if (shouldReloadWebView) {
+
+        if (shouldReloadWebView || isForceEnInitial != AppSingleton.isForceEn) {
             shouldReloadWebView = false
-            setupWebView()
-            webView?.let { wv ->
-                try {
-                    AppSingleton.isPlayerLoaded = false
-                    updateLoadingVisibility()
-                    wv.clearCache(true)
-                    wv.clearHistory()
-                    wv.clearFormData()
-                    WebStorage.getInstance().deleteAllData()
-                    if (AppSingleton.isServiceEnabled) {
-                        wv.reload()
-                        showMessage(getString(R.string.txt_reload))
-                    }
-                } catch (e: Exception) {
-                    AppSingleton.globalWebView = null
-                    setupWebView()
-                }
-            }
+            isForceEnInitial = AppSingleton.isForceEn
+            restartService()
         }
-        if (shouldClearCookies) {
-            shouldClearCookies = false
-            if (WebService.isServiceRunning) {
-                backgroundText?.setText(R.string.txt_servicenr)
-                webView?.let { webViewContainer?.removeView(it) }
-                startService(Intent(AppSingleton.appContext, WebService::class.java).setAction("STOP_SERVICE"))
-            }
-            val webView2 = WebView(AppSingleton.appContext)
-            webView2.clearCache(true)
-            webView2.clearHistory()
-            webView2.clearFormData()
-            WebStorage.getInstance().deleteAllData()
-            CookieManager.getInstance().removeAllCookies(null)
-            CookieManager.getInstance().flush()
-            AppSingleton.isLoggedIn = false
-            AppSingleton.globalWebView = null
-            setupWebView()
-        }
+
+        syncUiState()
     }
 }

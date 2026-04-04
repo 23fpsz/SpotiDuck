@@ -69,6 +69,7 @@ class AndBridge(context: Context) {
 
     private fun stopServiceAutomatically() {
         AppSingleton.isServiceEnabled = false
+        AppSingleton.isPlayerLoaded = false // Ensure splash shows up on next check
         AppSingleton.prefsEditor.putBoolean("ServiceOn", false).apply()
         AppSingleton.appContext.startService(Intent(AppSingleton.appContext, WebService::class.java).setAction("STOP_SERVICE"))
         AppSingleton.notifyUiUpdate()

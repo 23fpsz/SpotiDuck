@@ -139,6 +139,8 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
                         .setNegativeButton(R.string.dlg_no, null)
                         .setPositiveButton(R.string.dlg_yes) { _, _ ->
                             MainActivity.shouldClearCookies = true
+                            AppSingleton.isLoggedIn = false
+                            AppSingleton.prefsEditor.putBoolean("LoggedIn", false).apply()
                             activity?.finish()
                         }
                         .show()
