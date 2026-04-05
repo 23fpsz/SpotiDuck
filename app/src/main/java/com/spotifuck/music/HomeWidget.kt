@@ -25,7 +25,7 @@ class HomeWidget : AppWidgetProvider() {
                 if (WebService.isServiceRunning && WebService.isPlaying) {
                     val context = AppSingleton.appContext
                     updateAllWidgets(context)
-                    // Updated to 2 seconds for progress bar only. 
+                    // Updated to 2 seconds for progress bar only.
                     // Chronometer handles the text timer.
                     handler.postDelayed(this, 2000)
                 } else {
@@ -51,8 +51,9 @@ class HomeWidget : AppWidgetProvider() {
         private fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-            
-            val isExpanded = minHeight >= 100
+
+            // Increased threshold from 100 to 128 to avoid 1-grid height widgets showing expanded layout on some devices
+            val isExpanded = minHeight >= 128
             val layoutId = if (isExpanded) R.layout.widget_expanded else R.layout.home_widget
             val remoteViews = RemoteViews(context.packageName, layoutId)
 
