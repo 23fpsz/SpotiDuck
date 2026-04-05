@@ -99,6 +99,21 @@ div[data-testid=tracklist-row] button:not([data-testid=add-to-playlist-button]) 
     --content-spacing: 10px;
 }
 
+/* Hide all scrollbars globally */
+.os-scrollbar {
+    display: none !important;
+}
+
+/* Apply vertical scroll to the div containing the viewport and lock horizontal scroll */
+div:has(> [data-overlayscrollbars-viewport]) {
+    overflow-y: auto !important;
+}
+
+[data-overlayscrollbars-viewport] {
+    --os-viewport-overflow-x: hidden !important;
+    overflow-y: visible !important;
+}
+
 aside[data-testid=now-playing-bar] {
     min-width: 100% !important;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);

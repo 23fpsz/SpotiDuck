@@ -489,6 +489,7 @@
 
     window.addAndAuto = function(once = false) {
         const run = () => {
+            // Track context info
             let ta = document.querySelector('a[data-testid=context-item-link]');
             if (ta) window.track = ta.innerText;
             else window.track = null;
