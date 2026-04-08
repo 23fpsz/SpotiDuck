@@ -1,5 +1,26 @@
 # Spotifuck Changelog
 
+## v1.1.3
+- *Upcoming changes...*
+
+## v1.1.2
+- **Album Art Synchronization**:
+    - Fixed a critical race condition where fast track skipping caused the notification and lock screen album art to mismatch the currently playing song.
+    - Implemented synchronous image loading on the Javascript bridge thread to ensure metadata updates occur in the correct sequence.
+    - Added an explicit reset to clear the album art bitmap at the start of every track update, preventing "ghosting" of previous artwork.
+- **Enhanced Integration**:
+    - **Link Sharing**: Added the ability to share Spotify links directly to SpotiDuck from other apps.
+    - **Website Preloading**: Implemented preloading for the web player to significantly reduce initial startup time.
+    - **Two-Way Canvas Bridge**: Developed a bidirectional bridge for Canvas control, allowing the app to both read and set the Spotify Canvas state.
+- **UI & UX Improvements**:
+    - **Android Automotive**: Added support for Android Automotive systems.
+    - **Animation Overhaul**: Improved UI animations for smoother transitions between player states.
+    - **Playlist Navigation**: Fixed horizontal scrolling issues inside playlists.
+    - **Visual Polish**: Updated icons, refined z-index layering, and fixed library section layout bugs.
+- **System & Automation**:
+    - **CI/CD Pipeline**: Fully automated the release process with GitHub Actions, including signed APK generation and automated GitHub Releases.
+    - **App Branding**: Transitioned internal naming and resources to "SpotiDuck".
+
 ## v1.1.1
 - **Now Playing & Canvas Improvements**:
     - **Dynamic Gradient Sync**: Fixed an issue where the player bar gradient would only update for the first song; it now correctly synchronizes with the album art colors on every track change.

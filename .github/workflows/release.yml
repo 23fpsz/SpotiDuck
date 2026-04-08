@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - 'v*' # ONLY run when a tag starting with 'v' is pushed
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -27,17 +31,17 @@ jobs:
         RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
       run: |
         if [ -z "$RELEASE_KEYSTORE" ]; then
-          echo "RELEASE_KEYSTORE secret is missing. Skipping signing."
+          echo "Error: RELEASE_KEYSTORE secret is missing."
           exit 1
         fi
-        echo $RELEASE_KEYSTORE | base64 --decode > release.keystore
+        printf "%s" "$RELEASE_KEYSTORE" | base64 -di > release.keystore
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Build Release APK
       env:
-        RELEASE_STORE_FILE: ../release.keystore
+        RELEASE_STORE_FILE: ${{ github.workspace }}/release.keystore
         RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
         RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
         RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
@@ -46,13 +50,14 @@ jobs:
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
-        name: Spotifuck-Release-Build
+        name: SpotiDuck-Release-Build
         path: app/build/outputs/apk/release/*.apk
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         files: app/build/outputs/apk/release/*.apk
-        generate_release_notes: true
+        generate_release_notes: false
+        body: ""
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
