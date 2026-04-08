@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private var messageText: TextView? = null
     private var progressBar: ProgressBar? = null
     private var serviceIntent: Intent? = null
+    private var pendingSpotifyUri: String? = null
 
     companion object {
         @JvmField var virtualWidth: Int = 0
@@ -249,6 +250,26 @@ class MainActivity : AppCompatActivity() {
         }, 1200) // Increased delay to ensure service stop is processed
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val uri = intent?.getStringExtra("spotify_uri")
+        if (uri != null) {
+            pendingSpotifyUri = uri
+            processPendingUri()
+        }
+    }
+
+    private fun processPendingUri() {
+        val uri = pendingSpotifyUri ?: return
+        if (WebService.isServiceRunning && AppSingleton.isPlayerLoaded) {
+            AppSingleton.globalWebView?.post {
+                AppSingleton.globalWebView?.evaluateJavascript("playFromUri('$uri');", null)
+            }
+            pendingSpotifyUri = null
+        }
+    }
+
     fun syncUiState() {
         updateBackgroundColors()
         
@@ -266,6 +287,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             progressBar?.visibility = View.INVISIBLE
             hideSplash(isAuthPage) // Force hide if on auth page
+            processPendingUri() // Handle any URI that was waiting for the player to load
         }
     }
 
@@ -488,6 +510,11 @@ class MainActivity : AppCompatActivity() {
 
         if (WebService.isServiceRunning && AppSingleton.isPlayerLoaded) {
             hideSplash()
+        }
+
+        intent?.getStringExtra("spotify_uri")?.let {
+            pendingSpotifyUri = it
+            processPendingUri()
         }
 
         if (shouldReloadWebView || isForceEnInitial != AppSingleton.isForceEn) {
