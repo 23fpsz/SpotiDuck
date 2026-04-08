@@ -135,20 +135,15 @@ class AndBridge(context: Context) {
                 WebService.isFavorite = jSONObject.optBoolean("fav")
                 
                 val coverUrl = jSONObject.optString("cover").replace("00004851", "0000b273")
+                WebService.albumArt = null
                 if (coverUrl.isNotEmpty()) {
-                    Thread {
-                        try {
-                            WebService.albumArt = Picasso.get().load(coverUrl).get()
-                            WebService.updatePlaybackState()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                            WebService.updatePlaybackState()
-                        }
-                    }.start()
-                } else {
-                    WebService.albumArt = null
-                    WebService.updatePlaybackState()
+                    try {
+                        WebService.albumArt = Picasso.get().load(coverUrl).get()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
+                WebService.updatePlaybackState()
             }
         } catch (e2: JSONException) {
             e2.printStackTrace()
