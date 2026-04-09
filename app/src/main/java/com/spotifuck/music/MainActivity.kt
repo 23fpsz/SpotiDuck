@@ -25,7 +25,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import java.lang.ref.WeakReference
 import java.util.Locale
 
@@ -92,7 +94,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(bundle: Bundle?) {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        
         super.onCreate(bundle)
+        
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
         
         if (AppSingleton.isForceEn) {
             Locale.setDefault(Locale("en"))
@@ -102,8 +112,8 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.main)?.let { mainView ->
             ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
-                val top = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top
-                v.setPadding(0, top, 0, 0)
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.setPadding(0, systemBars.top, 0, 0)
                 insets
             }
         }
@@ -430,6 +440,16 @@ class MainActivity : AppCompatActivity() {
                     }
                 })
                 ?.start()
+        }
+    }
+
+    fun setExpandedMode(expanded: Boolean) {
+        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+        if (expanded) {
+            windowInsetsController.hide(WindowInsetsCompat.Type.statusBars())
+            windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        } else {
+            windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
         }
     }
 

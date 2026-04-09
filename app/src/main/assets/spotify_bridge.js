@@ -552,6 +552,20 @@
     };
 
     window.addCSSJSHack = function() {
+        // Ensure viewport-fit=cover is set for safe-area-inset-bottom to work
+        let meta = document.querySelector('meta[name="viewport"]');
+        if (meta) {
+            let content = meta.getAttribute('content');
+            if (!content.includes('viewport-fit=cover')) {
+                meta.setAttribute('content', content + ', viewport-fit=cover');
+            }
+        } else {
+            meta = document.createElement('meta');
+            meta.name = "viewport";
+            meta.content = "width=device-width, initial-scale=1.0, viewport-fit=cover";
+            document.head.appendChild(meta);
+        }
+
         if (window.SF_CONFIG.guiMode === "csshack") {
             if (cssint) clearInterval(cssint);
             cssint = setInterval(function() {
@@ -594,7 +608,13 @@
                     });
                 }
                 let minBtn = document.querySelector('button[aria-label*="Minimize"], button[aria-label*="Back to player"]');
-                let isVis = minBtn && (minBtn.offsetParent !== null || minBtn.offsetWidth > 0);
+                let isVis = !!(minBtn && (minBtn.offsetParent !== null || minBtn.offsetWidth > 0));
+
+                if (isVis !== window.sf_is_expanded) {
+                    window.sf_is_expanded = isVis;
+                    AndBridge.setExpanded(isVis);
+                }
+
                 if (isVis) {
                     document.body.classList.add('sf-expanded');
                 } else {

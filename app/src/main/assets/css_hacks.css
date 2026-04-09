@@ -8,7 +8,7 @@ body {
 }
 
 .contentSpacing {
-    padding: 0;
+    padding: 0 15px !important;
 }
 
 div[data-testid=root] {
@@ -114,11 +114,37 @@ div:has(> [data-overlayscrollbars-viewport]) {
     overflow-y: visible !important;
 }
 
+/* Fix for the green Connect Bar pushing the player up */
+aside[data-testid="now-playing-bar"] > .encore-bright-accent-set,
+[data-testid="connect-bar"] {
+    position: absolute !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: env(safe-area-inset-bottom) !important; /* Fixed height for the bar */
+    z-index: calc(var(--above-everything-grid-area-z-index) + 11) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: auto !important;
+}
+
+/* Force the container to ignore the bar's presence in flex flow */
+aside[data-testid="now-playing-bar"] {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+footer {
+    position: relative !important;
+}
+
 aside[data-testid=now-playing-bar] {
     min-width: 100% !important;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     background: var(--background-base, #121212) !important;
     display: flex !important;
+    padding-bottom: env(safe-area-inset-bottom) !important; /* Dynamic padding for Android Nav Bar */
     /* Hardware acceleration hint */
     will-change: transform, opacity;
     /* Layer 3: Top Controls */
@@ -311,7 +337,6 @@ body.sf-fullscreen-enabled.sf-expanded aside[data-testid=now-playing-bar] {
     background: rgba(0, 0, 0, 0.7) !important;
     backdrop-filter: blur(25px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 8px;
     /* Layer 3: Top Controls */
     z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
 }

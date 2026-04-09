@@ -112,6 +112,15 @@ class AndBridge(context: Context) {
     }
 
     @JavascriptInterface
+    fun setExpanded(expanded: Boolean) {
+        AppSingleton.activityRef?.get()?.let { mainActivity ->
+            mainActivity.runOnUiThread {
+                mainActivity.setExpandedMode(expanded)
+            }
+        }
+    }
+
+    @JavascriptInterface
     fun recMediaPosition(j2: Long) {
         WebService.trackPosition = j2
         WebService.lastPositionUpdateTime = SystemClock.elapsedRealtime()
