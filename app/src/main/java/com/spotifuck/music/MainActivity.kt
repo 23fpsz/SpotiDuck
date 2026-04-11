@@ -95,6 +95,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(bundle: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
         
         super.onCreate(bundle)
         
