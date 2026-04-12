@@ -117,7 +117,23 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.main)?.let { mainView ->
             ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                v.setPadding(0, systemBars.top, 0, 0)
+                // Remove padding from the main view to allow content to go edge-to-edge
+                v.setPadding(0, 0, 0, 0)
+                
+                // Keep Settings button below status bar
+                findViewById<View>(R.id.btnSettings)?.let { btn ->
+                    val lp = btn.layoutParams as ConstraintLayout.LayoutParams
+                    lp.topMargin = systemBars.top + (5 * resources.displayMetrics.density).toInt()
+                    btn.layoutParams = lp
+                }
+
+                // Keep ProgressBar below status bar
+                findViewById<View>(R.id.progressBar)?.let { pb ->
+                    val lp = pb.layoutParams as ConstraintLayout.LayoutParams
+                    lp.topMargin = systemBars.top
+                    pb.layoutParams = lp
+                }
+
                 insets
             }
         }

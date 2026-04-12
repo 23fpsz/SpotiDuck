@@ -640,8 +640,8 @@
                     if (exp == 2) {
                         ls.style.setProperty('position', 'fixed', 'important');
                         ls.style.setProperty('width', '100%', 'important');
-                        ls.style.setProperty('height', 'calc(100vh - 48px)', 'important');
-                        ls.style.setProperty('top', '48px', 'important');
+                        ls.style.setProperty('height', 'calc(100vh - 48px - env(safe-area-inset-top))', 'important');
+                        ls.style.setProperty('top', 'calc(48px + env(safe-area-inset-top))', 'important');
                         ls.style.setProperty('bottom', '0px', 'important');
                         ls.style.setProperty('left', '0px', 'important');
                         ls.style.setProperty('overflow-y', 'auto', 'important');
@@ -651,7 +651,7 @@
                     } else {
                         ls.style.setProperty('z-index', '1', 'important');
                         ls.style.setProperty('position', 'fixed', 'important');
-                        ls.style.setProperty('top', '0px', 'important');
+                        ls.style.setProperty('top', 'env(safe-area-inset-top)', 'important');
                         ls.style.setProperty('left', '60px', 'important');
                         ls.style.setProperty('width', '48px', 'important');
                         ls.style.setProperty('height', '48px', 'important');
