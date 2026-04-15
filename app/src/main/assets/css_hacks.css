@@ -211,11 +211,17 @@ div[data-testid=now-playing-widget] {
     height: calc(48px + env(safe-area-inset-top)) !important;
 }
 
+#global-nav-bar > div:not([style*="justify-content: center"]) {
+    display: flex !important;
+    position: relative !important;
+    width: auto !important;
+    justify-content: flex-start !important;
+}
+
 form[role=search] {
     /* Layer 2: Overlay Controls */
     z-index: calc(var(--above-everything-grid-area-z-index) + 5);
     margin-left: 48px;
-    max-width: 88%;
 }
 
 div[data-testid=now-playing-widget]>div:nth-child(2) span {

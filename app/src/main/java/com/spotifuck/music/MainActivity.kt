@@ -492,9 +492,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView?.let { wv ->
-            (wv.parent as? ViewGroup)?.removeView(wv)
-            wv.layoutParams = FrameLayout.LayoutParams(virtualWidth, -1)
-            webViewContainer?.addView(wv)
+            if (wv.parent != webViewContainer) {
+                (wv.parent as? ViewGroup)?.removeView(wv)
+                wv.layoutParams = FrameLayout.LayoutParams(virtualWidth, -1)
+                webViewContainer?.addView(wv)
+            } else {
+                val lp = wv.layoutParams
+                if (lp.width != virtualWidth) {
+                    lp.width = virtualWidth
+                    wv.layoutParams = lp
+                }
+            }
+            wv.requestLayout()
         }
         
         backgroundText?.text = ""
@@ -564,5 +573,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         syncUiState()
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        setupWebView()
     }
 }
