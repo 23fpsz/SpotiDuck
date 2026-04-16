@@ -1,7 +1,21 @@
 # Spotifuck Changelog
 
 ## v1.1.3
-- *Upcoming changes...*
+- **Tablet & High-DPI Optimization**:
+    - **Adaptive Layout**: Fixed a critical issue where navigation icons (Home, Search, Library) would appear "stacked" or misaligned on high-DPI devices (702+).
+    - **Smart Viewport**: Implemented `useWideViewPort = false` and transitioned to an iPad (Tablet) User Agent to stabilize the mobile-style navigation bar on large screens without breaking authentication.
+    - **Rotation Stability**: Overrode `onConfigurationChanged` and migrated to `MATCH_PARENT` layout logic to eliminate "half-empty" screens and rendering freezes when rotating between portrait and landscape modes.
+    - **CSS Refinement**: Target-locked the navigation flex-containers to prevent horizontal icon drift in landscape while excluding centered elements like the search bar.
+    - **Search Bar Alignment**: Fixed an overflow issue where the search bar would extend beyond the top navigation bar on smaller tablets.
+    - **Clean UI**: Added case-insensitive CSS rules to hide "Explore Premium" and "Upgrade" buttons in the top navigation bar.
+    - **Stability**: Fixed a rendering flicker when interacting with the webpage via a mouse or cursor by enabling explicit WebView hardware acceleration layering and hiding redundant tooltips while preserving essential dropdown menus.
+    - **TV Optimization**: Automatically hides OneTrust cookie banners and privacy modals to prevent focus traps and "frozen" screens on Android TV devices.
+- **Immersive System UI**:
+    - **Transparent System Bars**: Updated the main activity to use fully transparent status and navigation bars, providing a seamless edge-to-edge visual experience.
+    - **Dynamic Status Bar**: Implemented automated logic to hide the status bar when the player is expanded, maximizing screen real estate for "Cinema Mode."
+- **Adaptive UI**:
+    - **Dynamic Navigation Padding**: Migrated the player bar and connect bar to use `env(safe-area-inset-bottom)`, allowing the UI to automatically adjust its height for both Gesture Navigation and 3-Button Navigation modes.
+    - **Viewport Optimization**: Added automated injection of `viewport-fit=cover` to the Spotify web player via the JavaScript bridge, enabling correct safe-area inset reporting in the WebView.
 
 ## v1.1.2
 - **Album Art Synchronization**:
