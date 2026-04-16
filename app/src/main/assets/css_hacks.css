@@ -26,6 +26,12 @@ div[data-testid=root] {
 }
 
 div[data-encore-id=banner],
+#onetrust-consent-sdk,
+#onetrust-banner-sdk,
+.cookie-banner,
+.onetrust-pc-dark-filter,
+#onetrust-pc-sdk,
+[data-tippy-root]:has([role="tooltip"]),
 #global-nav-bar>div:first-of-type,
 #global-nav-bar a[href="/download"],
 #global-nav-bar button[aria-label*="Upgrade" i],

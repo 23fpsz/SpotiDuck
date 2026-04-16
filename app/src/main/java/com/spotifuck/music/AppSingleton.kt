@@ -133,6 +133,7 @@ class AppSingleton : Application() {
                 }
 
                 globalWebView?.apply {
+                    setLayerType(View.LAYER_TYPE_HARDWARE, null)
                     overScrollMode = View.OVER_SCROLL_NEVER
                     scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
 
