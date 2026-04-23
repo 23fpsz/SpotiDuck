@@ -311,12 +311,12 @@ class MainActivity : AppCompatActivity() {
             showErrorState(false)
         } else if (AppSingleton.isErrorShowing) {
             showErrorState(AppSingleton.currentErrorType == 1)
-        } else if (!AppSingleton.isPlayerLoaded && !isAuthPage) {
+        } else if (!AppSingleton.isPlayerLoaded && !isAuthPage && AppSingleton.isLoggedIn) {
             progressBar?.visibility = View.VISIBLE
             showSplash()
         } else {
             progressBar?.visibility = View.INVISIBLE
-            hideSplash(isAuthPage) // Force hide if on auth page
+            hideSplash(isAuthPage || !AppSingleton.isLoggedIn) // Force hide if on auth page or not logged in
             processPendingUri() // Handle any URI that was waiting for the player to load
         }
     }
@@ -474,7 +474,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setupWebView() {
-        webView = AppSingleton.getWebView()
+        webView = AppSingleton.getWebView(this)
         
         if (AppSingleton.guiMode == "bigwindow") {
             horizontalScrollView?.isScrollingEnabled = true

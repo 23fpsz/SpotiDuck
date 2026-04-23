@@ -2,6 +2,7 @@ package com.spotifuck.music
 
 import android.app.Application
 import android.content.Context
+import android.content.MutableContextWrapper
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.net.ConnectivityManager
@@ -35,6 +36,7 @@ class AppSingleton : Application() {
         lateinit var prefs: SharedPreferences
         lateinit var prefsEditor: SharedPreferences.Editor
         @JvmField var globalWebView: WebView? = null
+        private var contextWrapper: MutableContextWrapper? = null
 
         @JvmField var autoPlayMode: String? = null
         @JvmField var guiMode: String? = null
@@ -116,7 +118,8 @@ class AppSingleton : Application() {
         @JvmOverloads
         fun getWebView(context: Context = appContext): WebView? {
             if (globalWebView == null) {
-                globalWebView = object : WebView(appContext) {
+                contextWrapper = MutableContextWrapper(context)
+                globalWebView = object : WebView(contextWrapper!!) {
                     override fun onWindowVisibilityChanged(visibility: Int) {
                         if (getContext() != null && (visibility == View.GONE || visibility == View.INVISIBLE)) {
                             evaluateJavascript("typeof playing!=='undefined'&&playing&&!!document.querySelector('.VideoPlayer__container video');") { value ->
@@ -140,6 +143,10 @@ class AppSingleton : Application() {
                     isLongClickable = false
                     setOnLongClickListener { true }
 
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        importantForAutofill = android.view.View.IMPORTANT_FOR_AUTOFILL_YES
+                    }
+
                     if (MainActivity.shouldClearCookies) {
                         clearCache(true)
                         clearFormData()
@@ -159,6 +166,11 @@ class AppSingleton : Application() {
                         useWideViewPort = true
                         loadWithOverviewMode = true
                         cacheMode = WebSettings.LOAD_DEFAULT
+                        
+                        // Enable Autofill relevant settings
+                        savePassword = true
+                        @Suppress("DEPRECATION")
+                        saveFormData = true
                     }
 
                     setInitialScale(100)
@@ -186,6 +198,8 @@ class AppSingleton : Application() {
                         }
                     }
                 }
+            } else {
+                contextWrapper?.baseContext = context
             }
             return globalWebView
         }
