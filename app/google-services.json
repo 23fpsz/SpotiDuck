@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "886827622378",
+    "project_id": "spotiduck-889fb",
+    "storage_bucket": "spotiduck-889fb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:886827622378:android:28cd72fec62fdc6546dc93",
+        "android_client_info": {
+          "package_name": "com.spotifuck.music"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4MzXEgzrPrRttOCM_WaEJ0Pb68uAE9us"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:886827622378:android:51425b224c46d71546dc93",
+        "android_client_info": {
+          "package_name": "com.spotifuck.music.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4MzXEgzrPrRttOCM_WaEJ0Pb68uAE9us"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

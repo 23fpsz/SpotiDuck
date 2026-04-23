@@ -4,6 +4,9 @@ import java.io.ByteArrayOutputStream
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
+    alias(libs.plugins.firebase.perf)
 }
 
 // Function to get the current Git commit hash using ProcessBuilder
@@ -119,6 +122,11 @@ androidComponents {
 }
 
 dependencies {
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.perf)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
