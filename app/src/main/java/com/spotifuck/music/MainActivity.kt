@@ -17,6 +17,7 @@ import android.webkit.CookieManager
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private var imgSplashLogo: ImageView? = null
     private var imgSplashError: ImageView? = null
     private var txtSplashError: TextView? = null
+    private var btnSettings: ImageButton? = null
 
     private var horizontalScrollView: LockableHScrollView? = null
     private var webViewContainer: FrameLayout? = null
@@ -145,6 +147,7 @@ class MainActivity : AppCompatActivity() {
         backgroundText = findViewById(R.id.frameBgText)
         statusText = findViewById(R.id.frameStatusText)
         messageText = findViewById(R.id.txtMessage)
+        btnSettings = findViewById(R.id.btnSettings)
         
         splashOverlay = findViewById(R.id.splashOverlay)
         imgSplashLogo = findViewById(R.id.imgSplashLogo)
@@ -303,6 +306,8 @@ class MainActivity : AppCompatActivity() {
     fun syncUiState() {
         updateBackgroundColors()
         
+        btnSettings?.visibility = if (AppSingleton.isSearchActive) View.GONE else View.VISIBLE
+
         val currentUrl = webView?.url ?: ""
         val isAuthPage = currentUrl.contains("/login") || currentUrl.contains("/auth") || currentUrl.contains("accounts.spotify.com")
 

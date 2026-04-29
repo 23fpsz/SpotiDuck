@@ -56,6 +56,7 @@ class AppSingleton : Application() {
         @JvmField var autoShutMinutes: Int = 0
         @JvmField var isCanvasDisabled: Boolean = false
         @JvmField var isFullScreenEnabled: Boolean = false
+        @JvmField var isSearchActive: Boolean = false
 
         private val assetCache = ConcurrentHashMap<String, String>()
 

@@ -95,6 +95,12 @@ class AndBridge(context: Context) {
     }
 
     @JavascriptInterface
+    fun setSearchActive(active: Boolean) {
+        AppSingleton.isSearchActive = active
+        AppSingleton.notifyUiUpdate()
+    }
+
+    @JavascriptInterface
     fun isWoke(): Boolean {
         return AppSingleton.globalWebView?.windowVisibility == View.VISIBLE
     }

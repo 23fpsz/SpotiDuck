@@ -601,10 +601,12 @@
                         let npb = document.querySelector('aside[data-testid=now-playing-bar]');
                         if (npb) npb.style.setProperty('display', 'none', 'important');
                         closeNowPlay();
+                        AndBridge.setSearchActive(true);
                     });
                     sr.addEventListener('blur', () => {
                         let npb = document.querySelector('aside[data-testid=now-playing-bar]');
                         if (npb) npb.style.setProperty('display', 'flex', 'important');
+                        AndBridge.setSearchActive(false);
                     });
                 }
                 let minBtn = document.querySelector('button[aria-label*="Minimize"], button[aria-label*="Back to player"]');
