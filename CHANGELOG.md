@@ -1,5 +1,20 @@
 # Spotifuck Changelog
 
+## v1.1.4
+- **Media3 Migration**:
+    - **Modern Core**: Fully migrated from legacy `MediaBrowserServiceCompat` to `MediaLibraryService`, improving background playback stability and future-proofing the app.
+    - **Reliable Metadata**: Fixed a persistent issue where song information and album art would stop refreshing when skipping tracks. Implemented dynamic `MediaId` generation and thread-safe state invalidation.
+    - **Playback Control**: Introduced `WebViewPlayer` (extending `SimpleBasePlayer`) for more robust communication between the native Android system and the Spotify WebView.
+- **Enhanced Notification & UI**:
+    - **Restored Controls**: Fixed the "3-button" limitation on Android 13+. Restored a full 5-button layout (**Favorite**, **Previous**, **Play/Pause**, **Next**, **Repeat**) in the expanded notification and lock screen.
+    - **Clean UI**: Automatically hides the Settings button when the search bar is active to prevent UI overlap.
+- **Widget & Stability**:
+    - **Crash Fix**: Resolved a critical crash occurring when interacting with the Repeat toggle on the home screen widget.
+    - **Icon Synchronization**: Restored the logic to dynamically update Repeat and Shuffle icons in the notification and home screen widget.
+- **System & Analytics**:
+    - **Firebase Integration**: Successfully integrated Firebase Analytics, Crashlytics, and Performance Monitoring for better app health tracking.
+    - **Utility Fixes**: Improved Autofill support and resolved several splash screen rendering issues for a smoother startup experience.
+
 ## v1.1.3
 - **Tablet & High-DPI Optimization**:
     - **Adaptive Layout**: Fixed a critical issue where navigation icons (Home, Search, Library) would appear "stacked" or misaligned on high-DPI devices (702+).
