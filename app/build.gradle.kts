@@ -133,6 +133,8 @@ dependencies {
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.media)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.media3.common)
     implementation(libs.picasso)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
