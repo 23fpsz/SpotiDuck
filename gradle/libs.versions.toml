@@ -9,7 +9,6 @@ material = "1.10.0"
 swiperefreshlayout = "1.1.0"
 preferenceKtx = "1.2.1"
 media = "1.6.0"
-media3 = "1.5.1"
 picasso = "2.8"
 googleServices = "4.4.4"
 firebaseBom = "34.12.0"
@@ -23,8 +22,6 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 androidx-preference-ktx = { group = "androidx.preference", name = "preference-ktx", version.ref = "preferenceKtx" }
 androidx-media = { group = "androidx.media", name = "media", version.ref = "media" }
-androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
-androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3" }
 picasso = { group = "com.squareup.picasso", name = "picasso", version.ref = "picasso" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
