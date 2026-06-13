@@ -1,10 +1,14 @@
-name: Debug Build
+name: Rolling Beta Build
 
 on:
   push:
     branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+    tags-ignore:
+      - 'v*' # Don't run this when pushing an official release tag
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -23,14 +27,48 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Decode Keystore
+      env:
+        RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
+      run: |
+        if [ -n "$RELEASE_KEYSTORE" ]; then
+          printf "%s" "$RELEASE_KEYSTORE" | base64 -di > release.keystore
+        fi
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
+    - name: Build APKs
+      env:
+        RELEASE_STORE_FILE: ${{ github.workspace }}/release.keystore
+        RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+        RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+        RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+      run: ./gradlew assembleDebug assembleRelease
 
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v4
+    - name: Prepare APKs for Upload
+      run: |
+        mkdir -p outputs
+        # Using find to handle variable filenames from build.gradle
+        find app/build/outputs/apk/debug/ -name "*.apk" -exec cp {} outputs/SpotiDuck-Beta-Normal.apk \;
+        find app/build/outputs/apk/release/ -name "*.apk" -exec cp {} outputs/SpotiDuck-Beta-Minified.apk \;
+
+    - name: Update Latest Beta Release
+      uses: softprops/action-gh-release@v2
       with:
-        name: Spotifuck-Debug-Build
-        path: app/build/outputs/apk/debug/*.apk
+        tag_name: latest-beta
+        name: "Latest Beta Build"
+        body: |
+          This is an automated rolling build of the latest commit.
+          - **SpotiDuck-Beta-Normal.apk**: Standard build with full logs.
+          - **SpotiDuck-Beta-Minified.apk**: Optimized and minified build (Signed).
+          
+          *Last updated: ${{ github.event.head_commit.timestamp }}*
+          *Commit: ${{ github.sha }}*
+        draft: false
+        prerelease: true
+        files: |
+          outputs/SpotiDuck-Beta-Normal.apk
+          outputs/SpotiDuck-Beta-Minified.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
