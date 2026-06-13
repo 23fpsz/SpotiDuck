@@ -179,6 +179,20 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (AppSingleton.isLoggedIn && WebService.isServiceRunning) {
+                    webView?.evaluateJavascript("(function() { if(window.closeFullscreenPlayer) { let open = !!document.getElementById('sf-fs-player'); if(open) { window.closeFullscreenPlayer(); return true; } } return false; })();") { value ->
+                        if (value == "true") {
+                            // Back handled by closing fullscreen player
+                        } else {
+                            handleRegularBack()
+                        }
+                    }
+                } else {
+                    handleRegularBack()
+                }
+            }
+
+            private fun handleRegularBack() {
                 if (!WebService.isServiceRunning) {
                     finish()
                 } else {
