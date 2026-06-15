@@ -142,7 +142,6 @@ aside[data-testid="now-playing-bar"] > .encore-bright-accent-set,
 aside[data-testid="now-playing-bar"] {
     position: relative !important;
     display: flex !important;
-    flex-direction: column !important;
 }
 
 footer {
@@ -178,42 +177,49 @@ body.sf-fullscreen-disabled.sf-expanded aside[data-testid=now-playing-bar] {
     box-shadow: 0 -12px 30px rgba(0,0,0,0.6);
 }
 
-aside[data-testid=now-playing-bar]>div:first-child {
-    margin-top: 2px;
-    flex-direction: column !important;
-    height: auto !important;
-}
+/* Portrait Mode Specific Overrides: Enable vertical stacking and larger controls */
+@media (orientation: portrait) {
+    aside[data-testid="now-playing-bar"] {
+        flex-direction: column !important;
+    }
 
-aside[data-testid=now-playing-bar]>div>div {
-    width: 100% !important;
-}
+    aside[data-testid=now-playing-bar]>div:first-child {
+        margin-top: 2px;
+        flex-direction: column !important;
+        height: auto !important;
+    }
 
-aside[data-testid=now-playing-bar]>div>div:last-child>div {
-    min-height: 32px;
-    margin: 5px 10px;
-}
+    aside[data-testid=now-playing-bar]>div>div {
+        width: 100% !important;
+    }
 
-aside[data-testid=now-playing-bar]>div>div:last-child button {
-    transform: scale(1.15);
-    margin: 0 5px;
-}
+    aside[data-testid=now-playing-bar]>div>div:last-child>div {
+        min-height: 32px;
+        margin: 5px 10px;
+    }
 
-div[data-testid=general-controls] {
-    margin: 15px 0 25px;
-}
+    aside[data-testid=now-playing-bar]>div>div:last-child button {
+        transform: scale(1.15);
+        margin: 0 5px;
+    }
 
-div[data-testid=general-controls] button {
-    transform: scale(1.4) !important;
-    margin: 0 8px !important;
-}
+    div[data-testid=general-controls] {
+        margin: 15px 0 25px;
+    }
 
-div[data-testid=player-controls] {
-    margin: 5px 0;
-}
+    div[data-testid=general-controls] button {
+        transform: scale(1.4) !important;
+        margin: 0 8px !important;
+    }
 
-div[data-testid=now-playing-widget] {
-    justify-content: center;
-    overflow: hidden;
+    div[data-testid=player-controls] {
+        margin: 5px 0;
+    }
+
+    div[data-testid=now-playing-widget] {
+        justify-content: center;
+        overflow: hidden;
+    }
 }
 
 #global-nav-bar {
@@ -633,4 +639,14 @@ body.sf-expanded #global-nav-bar {
 
 .sf-fs-controls button:active, .sf-fs-extra-controls button:active {
     opacity: 0.7;
+}
+
+/* Force hide search history/dropdown menu completely */
+[data-tippy-root]:has([data-encore-id="typeList"]),
+[data-tippy-root]:has([class*="type-list"]),
+[role="dialog"]:has([data-encore-id="typeList"]),
+[role="dialog"]:has([class*="type-list"]),
+[role="listbox"]:has([data-encore-id="typeList"]),
+[role="listbox"]:has([class*="type-list"]) {
+    display: none !important;
 }
