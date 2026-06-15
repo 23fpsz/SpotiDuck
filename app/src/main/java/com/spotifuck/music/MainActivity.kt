@@ -538,6 +538,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        FirebaseHotfixManager.initialize(this)
         requestedOrientation = if (AppSingleton.isForcePortrait) {
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         } else {

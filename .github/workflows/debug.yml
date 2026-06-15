@@ -5,6 +5,10 @@ on:
     branches: [ "main", "master" ]
     tags-ignore:
       - 'v*' # Don't run this when pushing an official release tag
+    paths-ignore:
+      - 'app/src/main/assets/**'
+      - 'scripts/publish-hotfix.js'
+      - '.github/workflows/hotfix.yml'
   workflow_dispatch:
 
 permissions:

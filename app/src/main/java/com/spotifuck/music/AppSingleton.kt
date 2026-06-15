@@ -14,6 +14,7 @@ import androidx.preference.PreferenceManager
 import android.webkit.WebSettings
 import android.webkit.WebView
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -92,8 +93,26 @@ class AppSingleton : Application() {
         @JvmStatic
         fun getAssetFile(fileName: String): String {
             val cached = assetCache[fileName]
-            if (cached != null) return cached
+            if (cached != null) {
+                android.util.Log.d("AppSingleton", "getAssetFile: $fileName loaded from memory cache")
+                return cached
+            }
 
+            // Check if hotfix file exists in internal storage
+            val hotfixFile = File(appContext.filesDir, "hotfixes/$fileName")
+            android.util.Log.d("AppSingleton", "getAssetFile: checking hotfix path: ${hotfixFile.absolutePath} (exists: ${hotfixFile.exists()})")
+            if (hotfixFile.exists()) {
+                try {
+                    val content = hotfixFile.readText()
+                    android.util.Log.d("AppSingleton", "getAssetFile: loaded $fileName from hotfix storage (length: ${content.length})")
+                    assetCache[fileName] = content
+                    return content
+                } catch (e: Exception) {
+                    android.util.Log.e("AppSingleton", "getAssetFile: failed to read hotfix for $fileName", e)
+                }
+            }
+
+            android.util.Log.d("AppSingleton", "getAssetFile: falling back to built-in asset for $fileName")
             return try {
                 appContext.assets.open(fileName).use { inputStream ->
                     BufferedReader(InputStreamReader(inputStream)).use { reader ->
@@ -105,6 +124,11 @@ class AppSingleton : Application() {
             } catch (e: Exception) {
                 ""
             }
+        }
+
+        @JvmStatic
+        fun clearAssetCache(fileName: String) {
+            assetCache.remove(fileName)
         }
 
         @JvmStatic
@@ -242,5 +266,8 @@ class AppSingleton : Application() {
         btPlay = prefs.getBoolean("BTAP", false)
         btPause = prefs.getBoolean("BTAS", false)
         isCanvasDisabled = prefs.getBoolean("DisableCanvas", true)
+
+        // Initialize dynamic hotfix updates
+        FirebaseHotfixManager.initialize(this)
     }
 }

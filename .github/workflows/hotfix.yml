@@ -1,0 +1,36 @@
+name: Deploy Web Hotfixes
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - 'app/src/main/assets/**'
+      - 'scripts/publish-hotfix.js'
+      - '.github/workflows/hotfix.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Publish Hotfixes to Firebase Remote Config
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "$FIREBASE_SERVICE_ACCOUNT" > firebase-service-account.json
+            export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/firebase-service-account.json
+            npm install google-auth-library
+            node scripts/publish-hotfix.js
+            rm firebase-service-account.json
+          else
+            echo "FIREBASE_SERVICE_ACCOUNT secret not set. Skipping hotfix publishing."
+          fi

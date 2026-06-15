@@ -76,10 +76,12 @@ class SpotifyWebViewClient : WebViewClient() {
                 "(function() {" +
                 "  let style = document.getElementById('sf-custom-style');" +
                 "  if(!style) { style = document.createElement('style'); style.id = 'sf-custom-style'; document.head.appendChild(style); }" +
-                "  style.textContent = `%s` + `%s`;" +
+                "  style.textContent = %s + %s;" +
                 "  %s" +
                 "})();",
-                css, amoledCss, classLogic.toString()
+                org.json.JSONObject.quote(css),
+                org.json.JSONObject.quote(amoledCss),
+                classLogic.toString()
             )
             webView.evaluateJavascript(injectCssJs, null)
         }
