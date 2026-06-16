@@ -58,6 +58,7 @@ class AppSingleton : Application() {
         @JvmField var isCanvasDisabled: Boolean = false
         @JvmField var isFullScreenEnabled: Boolean = false
         @JvmField var isSearchActive: Boolean = false
+        @JvmField var prioritizeLocalAssets: Boolean = true
 
         private val assetCache = ConcurrentHashMap<String, String>()
 
@@ -98,10 +99,12 @@ class AppSingleton : Application() {
                 return cached
             }
 
-            // Check if hotfix file exists in internal storage
+            // Check if hotfix file should be ignored based on debug builds and toggle
+            val isDebug = (appContext.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+            val shouldIgnoreHotfix = isDebug && prioritizeLocalAssets
             val hotfixFile = File(appContext.filesDir, "hotfixes/$fileName")
-            android.util.Log.d("AppSingleton", "getAssetFile: checking hotfix path: ${hotfixFile.absolutePath} (exists: ${hotfixFile.exists()})")
-            if (hotfixFile.exists()) {
+            android.util.Log.d("AppSingleton", "getAssetFile: checking hotfix path: ${hotfixFile.absolutePath} (exists: ${hotfixFile.exists()}, isDebug: $isDebug, shouldIgnoreHotfix: $shouldIgnoreHotfix)")
+            if (!shouldIgnoreHotfix && hotfixFile.exists()) {
                 try {
                     val content = hotfixFile.readText()
                     android.util.Log.d("AppSingleton", "getAssetFile: loaded $fileName from hotfix storage (length: ${content.length})")
@@ -266,6 +269,7 @@ class AppSingleton : Application() {
         btPlay = prefs.getBoolean("BTAP", false)
         btPause = prefs.getBoolean("BTAS", false)
         isCanvasDisabled = prefs.getBoolean("DisableCanvas", true)
+        prioritizeLocalAssets = prefs.getBoolean("PrioritizeLocalAssets", true)
 
         // Initialize dynamic hotfix updates
         FirebaseHotfixManager.initialize(this)

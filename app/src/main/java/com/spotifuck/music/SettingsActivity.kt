@@ -119,12 +119,21 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
                 AppSingleton.isCanvasDisabled = sharedPreferences.getBoolean(key, true)
                 AppSingleton.pushLiveUpdate()
             }
+            "PrioritizeLocalAssets" -> {
+                AppSingleton.prioritizeLocalAssets = sharedPreferences.getBoolean(key, true)
+                MainActivity.shouldReloadWebView = true
+            }
         }
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.preferences, rootKey)
+
+            val isDebug = (requireContext().applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+            if (!isDebug) {
+                findPreference<Preference>("PrioritizeLocalAssets")?.isVisible = false
+            }
 
             findPreference<Preference>("ClearCache")?.setOnPreferenceClickListener {
                 MainActivity.shouldReloadWebView = true

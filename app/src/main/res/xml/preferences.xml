@@ -132,5 +132,11 @@
             app:key="ForceEn"
             app:summary="@string/menu_forceensum"
             app:title="@string/menu_forceen" />
+        <SwitchPreference
+            app:defaultValue="true"
+            app:icon="@drawable/action"
+            app:key="PrioritizeLocalAssets"
+            app:summary="Load local APK assets instead of hotfixes"
+            app:title="Prioritize Local Assets (Debug)" />
     </PreferenceCategory>
 </PreferenceScreen>
