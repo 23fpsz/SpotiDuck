@@ -44,10 +44,12 @@ class SpotifyWebViewClient : WebViewClient() {
         }
 
         val config = String.format(
-            "window.SF_CONFIG = { isAndAutoEnabled: %b, guiMode: '%s', isCanvasDisabled: %b, autoPlayMode: '%s', closeNowPlay: %b, takeControl: %b, closeLibText: '%s' };",
+            "window.SF_CONFIG = { isAndAutoEnabled: %b, guiMode: '%s', isCanvasDisabled: %b, isFullScreenEnabled: %b, isAmoled: %b, autoPlayMode: '%s', closeNowPlay: %b, takeControl: %b, closeLibText: '%s' };",
             AppSingleton.isAndAutoEnabled,
             AppSingleton.guiMode,
             AppSingleton.isCanvasDisabled,
+            AppSingleton.isFullScreenEnabled,
+            AppSingleton.isAmoled,
             AppSingleton.autoPlayMode,
             AppSingleton.closeNowPlay,
             AppSingleton.takeControl,
