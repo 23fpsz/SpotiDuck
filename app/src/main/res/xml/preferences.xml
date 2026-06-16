@@ -8,7 +8,7 @@
     <PreferenceCategory app:title="@string/menu_cat_service">
         <SwitchPreference
             app:defaultValue="true"
-            app:icon="@drawable/autoplay"
+            app:icon="@drawable/action"
             app:key="ServiceOn"
             app:summary="Run the background player service"
             app:title="@string/txt_startservice" />
@@ -56,7 +56,7 @@
             app:title="@string/menu_andauto" />
         <SwitchPreference
             app:defaultValue="true"
-            app:icon="@drawable/guimode"
+            app:icon="@drawable/fullscreen"
             app:key="ExpandedFullScreen"
             app:title="Immersive Full-screen" />
         <SwitchPreference
@@ -70,22 +70,22 @@
     <PreferenceCategory app:title="@string/menu_actions">
         <SwitchPreference
             app:defaultValue="false"
-            app:icon="@drawable/action"
+            app:icon="@drawable/headphones"
             app:key="HPAP"
             app:title="@string/menu_hpap" />
         <SwitchPreference
             app:defaultValue="false"
-            app:icon="@drawable/action"
+            app:icon="@drawable/headphones"
             app:key="HPAS"
             app:title="@string/menu_hpas" />
         <SwitchPreference
             app:defaultValue="false"
-            app:icon="@drawable/action"
+            app:icon="@drawable/bluetooth"
             app:key="BTAP"
             app:title="@string/menu_btap" />
         <SwitchPreference
             app:defaultValue="false"
-            app:icon="@drawable/action"
+            app:icon="@drawable/bluetooth"
             app:key="BTAS"
             app:title="@string/menu_btas" />
     </PreferenceCategory>
@@ -134,7 +134,7 @@
             app:title="@string/menu_forceen" />
         <SwitchPreference
             app:defaultValue="true"
-            app:icon="@drawable/action"
+            app:icon="@drawable/developer"
             app:key="PrioritizeLocalAssets"
             app:summary="Load local APK assets instead of hotfixes"
             app:title="Prioritize Local Assets (Debug)" />
