@@ -161,6 +161,10 @@ class SpotifyWebViewClient : WebViewClient() {
         }
 
         // 4. Ad Block Implementation
+        if (url.contains("__token__")) {
+            return null
+        }
+
         if (url.contains(".net/audio/") || url.contains(".co/audio/") || 
             url.contains("/mp3-ad/") || url.contains("amillionads.com") || 
             url.contains("2mdn.net") || url.contains("adxcel.com") || 
@@ -180,9 +184,12 @@ class SpotifyWebViewClient : WebViewClient() {
                 connection.connect()
 
                 val contentType = connection.contentType
+
                 if (contentType != null && contentType.startsWith("audio/mpeg") && 
                     !url.contains("podz-content") && !url.contains("gew4-spclient")) {
                     
+                    Log.d("Spotifuck", "BLOCKED (Replaced with silent.mp3): $url")
+
                     AppSingleton.activityRef?.get()?.let { activity ->
                         activity.runOnUiThread { 
                             MainActivity.showMessage(activity.getString(R.string.txt_adblock))

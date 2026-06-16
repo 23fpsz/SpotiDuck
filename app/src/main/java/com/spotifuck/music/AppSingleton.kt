@@ -150,7 +150,7 @@ class AppSingleton : Application() {
                 globalWebView = object : WebView(contextWrapper!!) {
                     override fun onWindowVisibilityChanged(visibility: Int) {
                         if (getContext() != null && (visibility == View.GONE || visibility == View.INVISIBLE)) {
-                            evaluateJavascript("typeof playing!=='undefined'&&playing&&!!document.querySelector('.VideoPlayer__container video');") { value ->
+                            evaluateJavascript("typeof playing!=='undefined'&&playing;") { value ->
                                 if ("true" == value) {
                                     super.onWindowVisibilityChanged(View.VISIBLE)
                                 } else {
