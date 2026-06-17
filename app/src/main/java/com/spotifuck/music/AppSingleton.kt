@@ -273,5 +273,13 @@ class AppSingleton : Application() {
 
         // Initialize dynamic hotfix updates
         FirebaseHotfixManager.initialize(this)
+
+        // Asynchronously pre-warm the WebView on app startup to speed up launch times
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (isNetworkAvailable() && isLoggedIn) {
+                android.util.Log.d("AppSingleton", "Pre-warming WebView...")
+                getWebView()
+            }
+        }, 150)
     }
 }
