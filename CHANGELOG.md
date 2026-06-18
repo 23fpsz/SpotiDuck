@@ -1,4 +1,41 @@
-# Spotifuck Changelog
+# SpotiDuck Changelog
+
+## v1.1.5
+- **Performance & WebView Optimizations**:
+    - **WebView Background Pre-warming**: Implemented asynchronous preloading of the WebView instance in the `Application` startup sequence (`AppSingleton.onCreate()`), starting DNS resolution and page loading 1-2 seconds earlier.
+    - **Optimized Ad-Blocker Interceptions**: Moved known ad networks and trackers (`amillionads.com`, `2mdn.net`, `adxcel.com`, `adstudio-assets.scdn.co`, `scdn.co/mp3-ad/`) directly to the instant in-memory block list, completely eliminating thread-blocking synchronous HTTP network requests in `shouldInterceptRequest`. Serves a custom partial-content responder (`HTTP 206`) for the local `silent.mp3` file to respect browser Range headers and prevent audio decoder freezes.
+    - **Offline Splash State Safeguard**: Updated `onReceivedError` and `onReceivedHttpError` to write failures directly to the global `AppSingleton` error states, ensuring the app displays the retry screen immediately rather than freezing on the splash screen during offline startup.
+- **Playback & Ad-Blocking Fixes**:
+    - **Ad-Blocking Mode Selector**: Introduced a dropdown selector in Settings to switch between the default "Legacy (Connection-Verified)" ad blocker and the "Instant (In-Memory)" ad blocker. This resolves song skipping issues on various devices by defaulting to the connection-verified legacy blocker while keeping the instant-blocking method as an optional configuration.
+    - **CDN Token Bypass**: Implemented a fast-path bypass for track stream URLs containing `__token__` in the ad-blocking network interception layer to prevent single-use token invalidation and resolve 10-30 second audio playback stops.
+    - **Simplified Background Keep-Awake**: Simplified background keep-awake checks to rely solely on the active `playing` state, resolving background audio freezing when Canvas rendering is disabled.
+    - **Clean Telemetry Logs**: Removed verbose matched URL logs from the network interception client to optimize Logcat output.
+- **UI & Layout Optimizations**:
+    - **Portrait-Only Stacking Overrides**: Wrapped custom mini-player vertical stacking overrides inside a portrait-only media query in `css_hacks.css`. This allows landscape mode to fall back naturally to Spotify's default web desktop horizontal layout, preventing the player from taking up half the screen.
+    - **Search Suggestions & Auto-Dismiss Fix**: Completely hide search history/suggestions dropdown overlays to prevent UI freezing. Registered touch and mouse click listeners to auto-blur the search input when tapping outside or playing a song to prevent screen transition layout bugs.
+- **Expanded Player & Gesture Controls**:
+    - **SpotiCap-Style Fullscreen Player & Dynamic Art Shadow**: Introduced an immersive, custom full-screen player overlay (`#sf-fs-player`) with deep background gradients, progress bar control, styled controls, and a dynamic album art shadow glow matching the extracted artwork colors.
+    - **Gesture Support**: Enabled swipe-left and swipe-right gestures on the now playing bar track info and fullscreen album art to skip tracks.
+    - **Tap-to-Play & DOM Tagger**: Added automated DOM tagging (`sf-player-bar`, `sf-player-widget`, `sf-track-info`) and tap-to-play overrides on track rows to trigger playback instantly.
+    - **Instant Transition Colors**: Optimized color extraction to run instantly when the player expands, removing the 250ms delay and preventing visual layout flashes.
+    - **Library Expansion Fix**: Restrained player state detection to ignore minimize/collapse events from the library panel, resolving system status bar visibility bugs.
+    - **System Back Button Support**: Hooked the Android system back button callback in `MainActivity` to execute dynamic DOM queries, allowing it to collapse the expanded player (`sf-expanded`), close the custom fullscreen overlay (`#sf-fs-player`), and dismiss side panels instead of exiting the application.
+- **Media Compatibility Restored**:
+    - **MediaSessionCompat Rollback**: Reverted from Media3 back to legacy `MediaSessionCompat` to fix the 3-button limitation on Android 13+ and ensure a full 5-button lock screen and notification media layout.
+- **Settings & UI Enhancements**:
+    - **Settings Menu Icons**: Added Bluetooth, headphones, developer, and fullscreen vector icons to category menus.
+    - **Robust Progress Bar Calculations**: Added safe boundary and type checks to the fullscreen progress bar calculations in `spotify_bridge.js` to prevent NaN or division-by-zero layout errors.
+    - **Prioritize Local Assets Toggle**: Introduced a developer option in Settings to force loading local APK assets instead of hotfixes during development.
+- **System & Hotfix Automation**:
+    - **Firebase Remote Config Hotfixes**: Implemented automatic loading and injection of CSS and JS hotfixes fetched directly from Firebase Remote Config.
+    - **Hotfix Publishing CLI**: Created a `publish-hotfix.js` Node script to automate diff checking and publishing local asset updates to Firebase.
+    - **CI/CD Pipeline**: Configured GitHub Actions to automatically run release checks and builds.
+    - **Spotify Structural Monitor**: Added a Playwright-based Python monitoring script (`scripts/monitor_spotify.py`) running on a cron schedule (`.github/workflows/monitor_spotify.yml`) to query Spotify's public Web Player DOM structure, verify active player CSS/DOM selectors, and report breaks automatically to Firebase.
+- **Technical Documentation & Repository Cleanup**:
+    - **Granular Technical Documentation**: Completely rewrote and expanded the codebase developer guide `DOCS.md` to map the fully refactored Kotlin architecture, setting preferences, ad-blocking stream interventions, system services (MediaSession, Auto catalog), and WebView visibility behaviors.
+    - **Standardized Project README**: Created a fresh, clean user-facing `README.md` documenting installation details, features, configuration keys, and project architecture.
+    - **Clean Repository Footprint**: Removed stale, redundant markdown files (`AGENTS.md`, `OPTIMIZATIONS.md`, `Research.md`) and gitignored agent workspace records to clean up the repository.
+
 
 ## v1.1.4
 - **Media3 Migration**:

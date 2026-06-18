@@ -1,6 +1,9 @@
 import java.util.Properties
 import java.io.FileInputStream
 import java.io.ByteArrayOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.TimeZone
 
 plugins {
     alias(libs.plugins.android.application)
@@ -22,6 +25,19 @@ fun getGitCommitHash(): String {
     }
 }
 
+// Function to get the current build time in GMT+05:30
+fun getBuildTime(): String {
+    return try {
+        val sdf = SimpleDateFormat("yyyyMMdd-HHmmss")
+        sdf.timeZone = TimeZone.getTimeZone("GMT+05:30")
+        sdf.format(Date())
+    } catch (e: Exception) {
+        "unknown"
+    }
+}
+
+
+
 android {
     namespace = "com.spotifuck.music"
     compileSdk = 35
@@ -37,8 +53,8 @@ android {
         applicationId = "com.spotifuck.music"
         minSdk = 24
         targetSdk = 34
-        versionCode = 15
-        versionName = "1.1.4"
+        versionCode = 16
+        versionName = "1.1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -106,7 +122,7 @@ androidComponents {
             if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
                 val isCI = System.getenv("GITHUB_ACTIONS") == "true"
                 val versionName = android.defaultConfig.versionName
-                val baseName = "SpotiDuck-v$versionName"
+                val baseName = "SpotiDuck-v$versionName-${getBuildTime()}"
                 
                 if (isCI && variant.name == "debug") {
                     val commitHash = getGitCommitHash()

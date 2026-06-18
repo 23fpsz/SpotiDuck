@@ -51,11 +51,15 @@ jobs:
       run: ./gradlew assembleDebug assembleRelease
 
     - name: Prepare APKs for Upload
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         mkdir -p outputs
-        # Using find to handle variable filenames from build.gradle
-        find app/build/outputs/apk/debug/ -name "*.apk" -exec cp {} outputs/SpotiDuck-Beta-Normal.apk \;
-        find app/build/outputs/apk/release/ -name "*.apk" -exec cp {} outputs/SpotiDuck-Beta-Minified.apk \;
+        # Delete old assets from the latest-beta release to prevent accumulation of old versions
+        gh release view latest-beta --json assets --jq '.assets[].name' | xargs -I {} gh release delete-asset latest-beta {} -y || true
+        # Copy the dynamically named APKs preserving their filenames
+        find app/build/outputs/apk/debug/ -name "*.apk" -exec cp {} outputs/ \;
+        find app/build/outputs/apk/release/ -name "*.apk" -exec cp {} outputs/ \;
 
     - name: Update Latest Beta Release
       uses: softprops/action-gh-release@v2
@@ -64,15 +68,12 @@ jobs:
         name: "Latest Beta Build"
         body: |
           This is an automated rolling build of the latest commit.
-          - **SpotiDuck-Beta-Normal.apk**: Standard build with full logs.
-          - **SpotiDuck-Beta-Minified.apk**: Optimized and minified build (Signed).
           
           *Last updated: ${{ github.event.head_commit.timestamp }}*
           *Commit: ${{ github.sha }}*
         draft: false
         prerelease: true
         files: |
-          outputs/SpotiDuck-Beta-Normal.apk
-          outputs/SpotiDuck-Beta-Minified.apk
+          outputs/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
