@@ -123,6 +123,10 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
                 AppSingleton.prioritizeLocalAssets = sharedPreferences.getBoolean(key, true)
                 MainActivity.shouldReloadWebView = true
             }
+            "AdBlockMode" -> {
+                AppSingleton.adBlockMode = sharedPreferences.getString(key, "legacy") ?: "legacy"
+                MainActivity.shouldReloadWebView = true
+            }
         }
     }
 

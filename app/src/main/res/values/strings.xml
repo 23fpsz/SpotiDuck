@@ -59,6 +59,9 @@
     <string name="srv_notif">You can disable this notification by long-pressing on it</string>
     <string name="srv_title">Playing in background</string>
     <string name="txt_adblock">Blocking Ads</string>
+    <string name="menu_adblock_mode">Ad Blocker Mode</string>
+    <string name="menu_adblock_legacy">Legacy (Connection-Verified)</string>
+    <string name="menu_adblock_instant">Instant (In-Memory)</string>
     <string name="txt_closelib">Close Library</string>
     <string name="txt_loadingpage">Loading...</string>
     <string name="txt_loadprevious">Going Back...</string>

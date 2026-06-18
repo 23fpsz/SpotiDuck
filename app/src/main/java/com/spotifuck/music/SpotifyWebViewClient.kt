@@ -102,6 +102,8 @@ class SpotifyWebViewClient : WebViewClient() {
 
         // Only show full-screen error if the main page fails to load
         if (isMainFrame) {
+            AppSingleton.isErrorShowing = true
+            AppSingleton.currentErrorType = 1
             AppSingleton.activityRef?.get()?.showErrorState(true)
         }
     }
@@ -114,6 +116,8 @@ class SpotifyWebViewClient : WebViewClient() {
             
             // For Spotify, 404/500 on main frame usually means something is wrong
             if (statusCode >= 400) {
+                AppSingleton.isErrorShowing = true
+                AppSingleton.currentErrorType = 1
                 AppSingleton.activityRef?.get()?.showErrorState(true)
             }
         }
@@ -128,23 +132,93 @@ class SpotifyWebViewClient : WebViewClient() {
 
         // On older APIs, we check if the failing URL is one of our main entry points
         if (failingUrl?.contains("open.spotify.com") == true || failingUrl?.contains("accounts.spotify.com") == true) {
+            AppSingleton.isErrorShowing = true
+            AppSingleton.currentErrorType = 1
             AppSingleton.activityRef?.get()?.showErrorState(true)
         }
+    }
+
+    private fun getSilentMediaResponse(webView: WebView, requestHeaders: Map<String, String>): WebResourceResponse {
+        val assetManager = webView.context.assets
+        val silentBytes = try {
+            assetManager.open("silent.mp3").use { it.readBytes() }
+        } catch (e: Exception) {
+            ByteArray(0)
+        }
+        val totalSize = silentBytes.size
+        
+        val rangeHeader = requestHeaders["Range"] ?: requestHeaders["range"]
+        
+        val headers = HashMap<String, String>()
+        headers["Access-Control-Allow-Origin"] = "*"
+        headers["Accept-Ranges"] = "bytes"
+        
+        if (rangeHeader != null && rangeHeader.startsWith("bytes=")) {
+            try {
+                val rangeValue = rangeHeader.substring(6)
+                val parts = rangeValue.split("-")
+                val start = parts[0].toLong().toInt()
+                val end = if (parts.size > 1 && parts[1].isNotEmpty()) {
+                    parts[1].toLong().toInt()
+                } else {
+                    totalSize - 1
+                }
+                
+                val clampedStart = start.coerceIn(0, totalSize - 1)
+                val clampedEnd = end.coerceIn(clampedStart, totalSize - 1)
+                val contentLength = clampedEnd - clampedStart + 1
+                
+                val rangeBytes = silentBytes.sliceArray(clampedStart..clampedEnd)
+                
+                headers["Content-Range"] = "bytes $clampedStart-$clampedEnd/$totalSize"
+                headers["Content-Length"] = contentLength.toString()
+                
+                return WebResourceResponse(
+                    "audio/mpeg", 
+                    null, 
+                    206, 
+                    "Partial Content", 
+                    headers, 
+                    ByteArrayInputStream(rangeBytes)
+                )
+            } catch (e: Exception) {
+                Log.e("Spotifuck", "Range parse error: ${e.message}")
+            }
+        }
+        
+        headers["Content-Length"] = totalSize.toString()
+        return WebResourceResponse(
+            "audio/mpeg", 
+            null, 
+            200, 
+            "OK", 
+            headers, 
+            ByteArrayInputStream(silentBytes)
+        )
     }
 
     override fun shouldInterceptRequest(webView: WebView, webResourceRequest: WebResourceRequest): WebResourceResponse? {
         val url = webResourceRequest.url.toString()
         val requestHeaders = webResourceRequest.requestHeaders
 
-        // 1. Instant Analytics Block (Master list)
-        if (url.contains("doubleclick.net") || url.contains("googlesyndication.com") || 
-            url.contains("fastly-insights.com") || url.contains("sentry.io")) {
-            val headers = HashMap<String, String>()
-            headers["Access-Control-Allow-Origin"] = "*"
-            return WebResourceResponse("text/plain", "utf-8", 200, "OK", headers, ByteArrayInputStream(ByteArray(0)))
+        // Real tracks contain __token__ and should never be intercepted
+        if (url.contains("__token__")) {
+            return null
         }
 
-        // 2. Extension Skip
+        // Detect if this is a media (audio/video) request based on Accept headers, Sec-Fetch-Dest, or extensions
+        val accept = requestHeaders["Accept"] ?: requestHeaders["accept"] ?: ""
+        val secFetchDest = requestHeaders["Sec-Fetch-Dest"] ?: requestHeaders["sec-fetch-dest"] ?: ""
+        
+        val isMediaRequest = accept.contains("audio", ignoreCase = true) || 
+                             accept.contains("video", ignoreCase = true) ||
+                             secFetchDest.contains("audio", ignoreCase = true) || 
+                             secFetchDest.contains("video", ignoreCase = true) ||
+                             url.contains(".mp3") || url.contains(".mp4") || 
+                             url.contains(".m4a") || url.contains(".aac") ||
+                             url.contains("/mp3-ad/") || url.contains("scdn.co/mp3-ad/")
+
+        // 1. Extension Skip
         val path = webResourceRequest.url.path
         if (path != null) {
             val lowerPath = path.lowercase()
@@ -155,54 +229,117 @@ class SpotifyWebViewClient : WebViewClient() {
             }
         }
 
-        // 3. Canvas Block
+        // 2. Canvas Block
         if (AppSingleton.isCanvasDisabled && (url.endsWith(".mp4") || url.endsWith(".webm") || url.contains("/canvaz/"))) {
             return WebResourceResponse("text/plain", "utf-8", 200, "OK", null, ByteArrayInputStream(ByteArray(0)))
         }
 
-        // 4. Ad Block Implementation
-        if (url.contains("__token__")) {
-            return null
-        }
+        if (AppSingleton.adBlockMode == "instant") {
+            // --- NEW STYLE AD BLOCKER (In-memory instant blocking) ---
+            // Detect if this is a media (audio/video) request based on Accept headers, Sec-Fetch-Dest, or extensions
+            val accept = requestHeaders["Accept"] ?: requestHeaders["accept"] ?: ""
+            val secFetchDest = requestHeaders["Sec-Fetch-Dest"] ?: requestHeaders["sec-fetch-dest"] ?: ""
+            
+            val isMediaRequest = accept.contains("audio", ignoreCase = true) || 
+                                 accept.contains("video", ignoreCase = true) ||
+                                 secFetchDest.contains("audio", ignoreCase = true) || 
+                                 secFetchDest.contains("video", ignoreCase = true) ||
+                                 url.contains(".mp3") || url.contains(".mp4") || 
+                                 url.contains(".m4a") || url.contains(".aac") ||
+                                 url.contains("/mp3-ad/") || url.contains("scdn.co/mp3-ad/")
 
-        if (url.contains(".net/audio/") || url.contains(".co/audio/") || 
-            url.contains("/mp3-ad/") || url.contains("amillionads.com") || 
-            url.contains("2mdn.net") || url.contains("adxcel.com") || 
-            url.contains("akamaized.net/audio/") || url.contains("scdn.co/audio/") ||
-            url.contains("scdn.co/mp3-ad/") || url.contains("spotifycdn.com/audio/") || 
-            url.contains("adstudio-assets.scdn.co")) {
+            // Check if the URL matches known ad or analytics domains/patterns
+            val isAdOrAnalytics = url.contains("doubleclick.net") || url.contains("googlesyndication.com") || 
+                                  url.contains("fastly-insights.com") || url.contains("sentry.io") ||
+                                  url.contains("2mdn.net") || url.contains("adxcel.com") ||
+                                  url.contains("amillionads.com") || url.contains("adstudio-assets.scdn.co") || 
+                                  url.contains("scdn.co/mp3-ad/") || url.contains("/mp3-ad/")
 
-            var connection: HttpURLConnection? = null
-            try {
-                connection = URL(url).openConnection() as HttpURLConnection
-                connection.requestMethod = webResourceRequest.method
-                for ((key, value) in requestHeaders) {
-                    connection.setRequestProperty(key, value)
-                }
-                connection.connectTimeout = 2000
-                connection.readTimeout = 2000
-                connection.connect()
-
-                val contentType = connection.contentType
-
-                if (contentType != null && contentType.startsWith("audio/mpeg") && 
-                    !url.contains("podz-content") && !url.contains("gew4-spclient")) {
-                    
-                    Log.d("Spotifuck", "BLOCKED (Replaced with silent.mp3): $url")
-
+            if (isAdOrAnalytics) {
+                // Show adblocker notification message for any matched audio ad stream start
+                if (isMediaRequest) {
                     AppSingleton.activityRef?.get()?.let { activity ->
                         activity.runOnUiThread { 
                             MainActivity.showMessage(activity.getString(R.string.txt_adblock))
                         }
                     }
-                    val res = WebResourceResponse("audio/mpeg", null, webView.context.assets.open("silent.mp3"))
-                    connection.disconnect()
-                    return res
                 }
-            } catch (e: Exception) {
-                Log.e("Spotifuck", "Adblock Error: " + e.message)
-            } finally {
-                connection?.disconnect()
+
+                if (isMediaRequest) {
+                    // Return silent.mp3 with proper Range (206) support to prevent decoding freezes
+                    return getSilentMediaResponse(webView, requestHeaders)
+                } else {
+                    // Return clean 200 OK empty response for tracking scripts/beacons
+                    val headers = HashMap<String, String>()
+                    headers["Access-Control-Allow-Origin"] = "*"
+                    return WebResourceResponse("text/plain", "utf-8", 200, "OK", headers, ByteArrayInputStream(ByteArray(0)))
+                }
+            }
+
+            // CDN Ad Block (Instant block without network connections)
+            val isCdnAd = (url.contains(".net/audio/") || url.contains(".co/audio/") || 
+                           url.contains("akamaized.net/audio/") || url.contains("scdn.co/audio/") ||
+                           url.contains("spotifycdn.com/audio/")) &&
+                          !url.contains("__token__") &&
+                          !url.contains("podz-content") && 
+                          !url.contains("gew4-spclient")
+
+            if (isCdnAd) {
+                AppSingleton.activityRef?.get()?.let { activity ->
+                    activity.runOnUiThread { 
+                        MainActivity.showMessage(activity.getString(R.string.txt_adblock))
+                    }
+                }
+                return getSilentMediaResponse(webView, requestHeaders)
+            }
+        } else {
+            // --- OLD STYLE AD BLOCKER (HTTP Connection based validation) ---
+            if (url.contains("doubleclick.net") || url.contains("googlesyndication.com") || 
+                url.contains("fastly-insights.com") || url.contains("sentry.io")) {
+                val headers = HashMap<String, String>()
+                headers["Access-Control-Allow-Origin"] = "*"
+                return WebResourceResponse("text/plain", "utf-8", 200, "OK", headers, ByteArrayInputStream(ByteArray(0)))
+            }
+
+            if (url.contains(".net/audio/") || url.contains(".co/audio/") || 
+                url.contains("/mp3-ad/") || url.contains("amillionads.com") || 
+                url.contains("2mdn.net") || url.contains("adxcel.com") || 
+                url.contains("akamaized.net/audio/") || url.contains("scdn.co/audio/") ||
+                url.contains("scdn.co/mp3-ad/") || url.contains("spotifycdn.com/audio/") || 
+                url.contains("adstudio-assets.scdn.co")) {
+
+                var connection: HttpURLConnection? = null
+                try {
+                    connection = URL(url).openConnection() as HttpURLConnection
+                    connection.requestMethod = webResourceRequest.method
+                    for ((key, value) in requestHeaders) {
+                        connection.setRequestProperty(key, value)
+                    }
+                    connection.connectTimeout = 2000
+                    connection.readTimeout = 2000
+                    connection.connect()
+
+                    val contentType = connection.contentType
+
+                    if (contentType != null && contentType.startsWith("audio/mpeg") && 
+                        !url.contains("podz-content") && !url.contains("gew4-spclient")) {
+                        
+                        Log.d("Spotifuck", "BLOCKED (Old style - Replaced with silent.mp3): $url")
+
+                        AppSingleton.activityRef?.get()?.let { activity ->
+                            activity.runOnUiThread { 
+                                MainActivity.showMessage(activity.getString(R.string.txt_adblock))
+                            }
+                        }
+                        val res = WebResourceResponse("audio/mpeg", null, webView.context.assets.open("silent.mp3"))
+                        connection.disconnect()
+                        return res
+                    }
+                } catch (e: Exception) {
+                    Log.e("Spotifuck", "Adblock Error: " + e.message)
+                } finally {
+                    connection?.disconnect()
+                }
             }
         }
 

@@ -46,4 +46,12 @@
         <item>bigwindow</item>
         <item>none</item>
     </string-array>
+    <string-array name="adblock_entries">
+        <item>@string/menu_adblock_legacy</item>
+        <item>@string/menu_adblock_instant</item>
+    </string-array>
+    <string-array name="adblock_values">
+        <item>legacy</item>
+        <item>instant</item>
+    </string-array>
 </resources>

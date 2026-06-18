@@ -59,6 +59,7 @@ class AppSingleton : Application() {
         @JvmField var isFullScreenEnabled: Boolean = false
         @JvmField var isSearchActive: Boolean = false
         @JvmField var prioritizeLocalAssets: Boolean = true
+        @JvmField var adBlockMode: String = "legacy"
 
         private val assetCache = ConcurrentHashMap<String, String>()
 
@@ -270,6 +271,7 @@ class AppSingleton : Application() {
         btPause = prefs.getBoolean("BTAS", false)
         isCanvasDisabled = prefs.getBoolean("DisableCanvas", true)
         prioritizeLocalAssets = prefs.getBoolean("PrioritizeLocalAssets", true)
+        adBlockMode = prefs.getString("AdBlockMode", "legacy") ?: "legacy"
 
         // Initialize dynamic hotfix updates
         FirebaseHotfixManager.initialize(this)
