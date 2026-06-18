@@ -124,6 +124,111 @@
         overlay.querySelector('.sf-fs-repeat-btn').onclick = actRepeat;
 
         setupSwipe(document.getElementById('sf-fs-art-wrap'), true);
+
+        // Dynamic color extraction from album art
+        const art = document.getElementById('sf-fs-art');
+        if (art) {
+            art.onload = () => {
+                let r1 = null, g1 = null, b1 = null;
+                let r2 = null, g2 = null, b2 = null;
+
+                const parseColorToRgb = (colorStr) => {
+                    if (!colorStr) return null;
+                    colorStr = colorStr.trim();
+                    if (colorStr.startsWith('rgb')) {
+                        const matches = colorStr.match(/\d+/g);
+                        if (matches && matches.length >= 3) {
+                            return [parseInt(matches[0]), parseInt(matches[1]), parseInt(matches[2])];
+                        }
+                    } else if (colorStr.startsWith('#')) {
+                        let hex = colorStr.slice(1);
+                        if (hex.length === 3) {
+                            hex = hex.split('').map(x => x + x).join('');
+                        }
+                        if (hex.length === 6) {
+                            return [
+                                parseInt(hex.slice(0, 2), 16),
+                                parseInt(hex.slice(2, 4), 16),
+                                parseInt(hex.slice(4, 6), 16)
+                            ];
+                        }
+                    }
+                    return null;
+                };
+
+                try {
+                    // Try direct canvas extraction (works if same-origin or CORS allowed)
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 10;
+                    canvas.height = 10;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(art, 0, 0, 10, 10);
+                    const data = ctx.getImageData(0, 0, 10, 10).data;
+
+                    // Top-left area (2,2)
+                    const idx1 = (2 * 10 + 2) * 4;
+                    r1 = data[idx1]; g1 = data[idx1+1]; b1 = data[idx1+2];
+
+                    // Bottom-right area (7,7)
+                    const idx2 = (7 * 10 + 7) * 4;
+                    r2 = data[idx2]; g2 = data[idx2+1]; b2 = data[idx2+2];
+                } catch (e) {
+                    // Failover: Read Spotify's extracted theme variables
+                    const fromColor = document.body.style.getPropertyValue('--cinema-mode-bg-color-from') ||
+                                      getComputedStyle(document.body).getPropertyValue('--cinema-mode-bg-color-from');
+                    const toColor = document.body.style.getPropertyValue('--cinema-mode-bg-color-to') ||
+                                    getComputedStyle(document.body).getPropertyValue('--cinema-mode-bg-color-to');
+
+                    const rgb1 = parseColorToRgb(fromColor);
+                    const rgb2 = parseColorToRgb(toColor);
+
+                    if (rgb1) [r1, g1, b1] = rgb1;
+                    if (rgb2) [r2, g2, b2] = rgb2;
+                }
+
+                if (r1 !== null && r2 !== null) {
+                    // Helper to convert RGB to glowing HSL
+                    const rgbToHsl = (r, g, b) => {
+                        r /= 255; g /= 255; b /= 255;
+                        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                        let h, s, l = (max + min) / 2;
+                        if (max === min) {
+                            h = s = 0;
+                        } else {
+                            const d = max - min;
+                            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                            switch (max) {
+                                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                                case g: h = (b - r) / d + 2; break;
+                                case b: h = (r - g) / d + 4; break;
+                            }
+                            h /= 6;
+                        }
+                        return [h * 360, s * 100, l * 100];
+                    };
+
+                    let [h1, s1, l1] = rgbToHsl(r1, g1, b1);
+                    let [h2, s2, l2] = rgbToHsl(r2, g2, b2);
+
+                    // Ensure vibrant neon pastel properties
+                    s1 = Math.max(75, s1);
+                    s2 = Math.max(75, s2);
+                    l1 = Math.max(55, Math.min(75, l1));
+                    l2 = Math.max(55, Math.min(75, l2));
+
+                    const color1 = `hsl(${h1.toFixed(1)}, ${s1.toFixed(1)}%, ${l1.toFixed(1)}%)`;
+                    const color2 = `hsl(${h2.toFixed(1)}, ${s2.toFixed(1)}%, ${l2.toFixed(1)}%)`;
+
+                    document.body.style.setProperty('--sf-art-color-from', color1);
+                    document.body.style.setProperty('--sf-art-color-to', color2);
+                } else {
+                    // Default fallback
+                    document.body.style.setProperty('--sf-art-color-from', '#9e80ff');
+                    document.body.style.setProperty('--sf-art-color-to', '#ff9efc');
+                }
+            };
+        }
+
         const barContainer = document.getElementById('sf-fs-bar-container');
         barContainer.addEventListener('touchstart', (e) => {
             fsScrubbing = true;
