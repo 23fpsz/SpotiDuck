@@ -1,0 +1,48 @@
+# Spotify Ad & Tracking Domains Fallback List
+# Consolidates domains from uBlock Origin, EasyList, AdGuard, and community Spotify ad lists.
+
+# Google & DoubleClick ad systems
+doubleclick.net
+googlesyndication.com
+googleads.g.doubleclick.net
+securepubads.g.doubleclick.net
+adclick.g.doubleclick.net
+googletagservices.com
+google-analytics.com
+2mdn.net
+s0.2mdn.net
+gcdn.2mdn.net
+
+# Telemetry, crash reports & tracking
+sentry.io
+fastly-insights.com
+app-measurement.com
+scorecardresearch.com
+quantserve.com
+adnxs.com
+rubiconproject.com
+pubmatic.com
+openx.net
+
+# Spotify internal ad & analytics domains
+adeventtracker.spotify.com
+analytics.spotify.com
+analytics.spotify.net
+crashdump.spotify.com
+log.spotify.com
+desktop.spotify.com
+sp-bootstrap.spotify.com
+sp-bootstrap.global.ssl.fastly.net
+ads-fa.spotify.com
+ads-fa.scdn.co
+adstudio-assets.scdn.co
+anycast.pixel.adstudio.spotify.com
+
+# Audio / Media ad injection providers
+amillionads.com
+adxcel.com
+adserver.adtech.de
+adserver.adtechus.com
+omny.fm
+tritondigital.com
+adswizz.com

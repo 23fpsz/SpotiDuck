@@ -593,7 +593,7 @@ If the user clicks the track album art, `spotify_bridge.js` generates a fullscre
 
 ## 📂 Ad Blocking Mechanism
 
-The ad blocker operates in one of two modes, configurable in the Player Settings:
+The ad blocker operates in one of three modes, configurable in the Player Settings:
 
 ### 1. Legacy Ad Blocker (Default)
 To ensure maximum compatibility and prevent legitimate songs from being skipped on some devices, the app defaults to the **Legacy Ad Blocker**.
@@ -602,11 +602,17 @@ To ensure maximum compatibility and prevent legitimate songs from being skipped 
 - **Analytics Block**: Known analytics and tracking hosts (like `doubleclick.net`, `sentry.io`, `googlesyndication.com`, `fastly-insights.com`) are instantly blocked with a `200 OK` empty response to avoid network bottlenecks.
 - **CDN Token Bypass**: Fast-path bypass for legitimate media track requests containing `__token__` URL parameters, preventing single-use token invalidation and avoiding audio playback freezes (which caused 10-30 second halts).
 
-### 2. Instant Ad Blocker (Optional dropdown mode: "instant")
-When configured via the **Ad Blocker Mode** (`AdBlockMode`) dropdown setting, this mode eliminates the overhead of making background connection checks to verify content types:
-- **In-Memory Pattern Matching**: All ad detection is handled instantly in-memory.
-- **HTTP 206 Range Response**: Replaced audio ads are served via `getSilentMediaResponse`, which parses range headers and returns an `HTTP 206 Partial Content` response to prevent decoder hangs.
-- **CDN Block**: Instantly intercepts patterns such as `.net/audio/`, `.co/audio/`, `scdn.co/audio/` without performing network validation. This reduces WebView loading latency but may occasionally skip regular audio tracks depending on device/network configurations.
+### 2. Instant Ad Blocker (Optional mode: "instant")
+Blocks known ad and tracking networks instantly in-memory:
+- **In-Memory Pattern Matching**: All ad detection for doubleclick, googlesyndication, sentry, etc., is handled instantly in-memory without blocking threads or initiating connections.
+- **No CDN Interception**: Legacy CDN checks are bypassed, completely preventing music tracks from skipping or stalling.
+- **Range Support**: Serves local `silent.mp3` with full HTTP 206 Range support to prevent browser audio decoder hangs.
+
+### 3. Dynamic Blocklist Ad Blocker (Optional mode: "dynamic")
+Utilizes a dynamically updated domain blocklist fetched from a user-configured URL:
+- **Automatic Caching**: Falls back to a default offline list (`assets/adblock_hosts.txt`) and caches updates in the app's internal files directory.
+- **Domain Suffix Matching**: Performs in-memory checks on request hosts against thousands of blacklisted domains (using clean, optimized loop-matching for speed).
+- **Inline Settings & Updater**: Fully configured and updated in-place via the nested Settings dialog. Bypasses risky CDN interceptions to ensure song playback is 100% reliable.
 
 ---
 

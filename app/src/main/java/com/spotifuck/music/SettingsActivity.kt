@@ -4,6 +4,13 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.Preference
@@ -127,6 +134,9 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
                 AppSingleton.adBlockMode = sharedPreferences.getString(key, "legacy") ?: "legacy"
                 MainActivity.shouldReloadWebView = true
             }
+            "AdBlockListUrl" -> {
+                AppSingleton.adBlockListUrl = sharedPreferences.getString(key, "https://raw.githubusercontent.com/Isaaker/Spotify-AdsList/main/Lists/standard_list.txt") ?: "https://raw.githubusercontent.com/Isaaker/Spotify-AdsList/main/Lists/standard_list.txt"
+            }
         }
     }
 
@@ -142,6 +152,113 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
             findPreference<Preference>("ClearCache")?.setOnPreferenceClickListener {
                 MainActivity.shouldReloadWebView = true
                 activity?.finish()
+                true
+            }
+
+            val adBlockModePref = findPreference<Preference>("AdBlockMode")
+
+            fun updateModeSummary(mode: String?) {
+                val entries = resources.getStringArray(R.array.adblock_entries)
+                val values = resources.getStringArray(R.array.adblock_values)
+                val index = values.indexOf(mode)
+                if (index >= 0 && index < entries.size) {
+                    adBlockModePref?.summary = entries[index]
+                } else {
+                    adBlockModePref?.summary = mode ?: "Legacy (Connection-Verified)"
+                }
+            }
+
+            val initialMode = AppSingleton.prefs.getString("AdBlockMode", "legacy")
+            updateModeSummary(initialMode)
+
+            adBlockModePref?.setOnPreferenceClickListener {
+                val context = requireContext()
+                val inflater = LayoutInflater.from(context)
+                val dialogView = inflater.inflate(R.layout.dialog_adblock_config, null)
+
+                val spinner = dialogView.findViewById<Spinner>(R.id.dialog_adblock_spinner)
+                val dynamicLayout = dialogView.findViewById<View>(R.id.dialog_dynamic_config_layout)
+                val urlEdit = dialogView.findViewById<EditText>(R.id.dialog_adblock_url_edit)
+                val updateBtn = dialogView.findViewById<Button>(R.id.dialog_adblock_update_btn)
+
+                // Set up spinner adapter
+                val adapter = ArrayAdapter(
+                    context,
+                    android.R.layout.simple_spinner_item,
+                    resources.getStringArray(R.array.adblock_entries)
+                )
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                spinner.adapter = adapter
+
+                // Pre-select current mode
+                val values = resources.getStringArray(R.array.adblock_values)
+                val currentMode = AppSingleton.prefs.getString("AdBlockMode", "legacy")
+                val selectedIndex = values.indexOf(currentMode).let { if (it >= 0) it else 0 }
+                spinner.setSelection(selectedIndex)
+
+                // Pre-fill current URL
+                val currentUrl = AppSingleton.prefs.getString("AdBlockListUrl", "https://raw.githubusercontent.com/Isaaker/Spotify-AdsList/main/Lists/standard_list.txt")
+                urlEdit.setText(currentUrl)
+
+                // Toggle visibility of dynamic settings based on spinner selection
+                spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                        val isDynamic = values.getOrNull(position) == "dynamic"
+                        dynamicLayout.visibility = if (isDynamic) View.VISIBLE else View.GONE
+                    }
+                    override fun onNothingSelected(parent: AdapterView<*>?) {}
+                }
+
+                // Handle manual update button click inside dialog
+                updateBtn.setOnClickListener {
+                    val newUrl = urlEdit.text.toString().trim()
+                    if (newUrl.isEmpty()) {
+                        android.widget.Toast.makeText(context, "URL cannot be empty", android.widget.Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    
+                    // Temporarily save the URL in preferences so the update task uses it
+                    AppSingleton.prefsEditor.putString("AdBlockListUrl", newUrl).apply()
+                    AppSingleton.adBlockListUrl = newUrl
+
+                    android.widget.Toast.makeText(context, "Updating blocklist...", android.widget.Toast.LENGTH_SHORT).show()
+                    AppSingleton.fetchAdBlockHostsAsync(context) { success ->
+                        activity?.runOnUiThread {
+                            if (success) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Blocklist updated! ${AppSingleton.adBlockHosts.size} domains loaded",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                            } else {
+                                android.widget.Toast.makeText(context, "Failed to update blocklist.", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+
+                AlertDialog.Builder(context)
+                    .setTitle("Ad Blocker Settings")
+                    .setView(dialogView)
+                    .setNegativeButton("Cancel", null)
+                    .setPositiveButton("Save") { _, _ ->
+                        val selectedPos = spinner.selectedItemPosition
+                        val newMode = values.getOrNull(selectedPos) ?: "legacy"
+                        val newUrl = urlEdit.text.toString().trim()
+
+                        AppSingleton.prefsEditor.putString("AdBlockMode", newMode).apply()
+                        AppSingleton.adBlockMode = newMode
+                        
+                        if (newMode == "dynamic") {
+                            AppSingleton.prefsEditor.putString("AdBlockListUrl", newUrl).apply()
+                            AppSingleton.adBlockListUrl = newUrl
+                        }
+
+                        updateModeSummary(newMode)
+                        MainActivity.shouldReloadWebView = true
+                    }
+                    .show()
+
                 true
             }
 

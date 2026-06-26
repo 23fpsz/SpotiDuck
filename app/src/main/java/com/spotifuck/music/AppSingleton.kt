@@ -60,6 +60,90 @@ class AppSingleton : Application() {
         @JvmField var isSearchActive: Boolean = false
         @JvmField var prioritizeLocalAssets: Boolean = true
         @JvmField var adBlockMode: String = "legacy"
+        @JvmField val adBlockHosts = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+        @JvmField var adBlockListUrl: String = "https://raw.githubusercontent.com/Isaaker/Spotify-AdsList/main/Lists/standard_list.txt"
+
+        @JvmStatic
+        fun loadAdBlockHosts() {
+            try {
+                adBlockHosts.clear()
+                val cachedFile = File(appContext.filesDir, "adblock_hosts.txt")
+                val reader = if (cachedFile.exists()) {
+                    BufferedReader(InputStreamReader(cachedFile.inputStream()))
+                } else {
+                    BufferedReader(InputStreamReader(appContext.assets.open("adblock_hosts.txt")))
+                }
+                
+                reader.use { r ->
+                    var line: String? = r.readLine()
+                    while (line != null) {
+                        val cleaned = line.trim()
+                        if (cleaned.isNotEmpty() && !cleaned.startsWith("#") && !cleaned.startsWith("!")) {
+                            var domain = cleaned
+                            if (domain.startsWith("||")) {
+                                domain = domain.substring(2)
+                            }
+                            if (domain.endsWith("^")) {
+                                domain = domain.substring(0, domain.length - 1)
+                            }
+                            
+                            if (domain.startsWith("0.0.0.0")) {
+                                domain = domain.substring(7).trim()
+                            } else if (domain.startsWith("127.0.0.1")) {
+                                domain = domain.substring(9).trim()
+                            }
+                            
+                            val hashIndex = domain.indexOf('#')
+                            if (hashIndex != -1) {
+                                domain = domain.substring(0, hashIndex).trim()
+                            }
+                            
+                            if (domain.isNotEmpty()) {
+                                adBlockHosts.add(domain.lowercase())
+                            }
+                        }
+                        line = r.readLine()
+                    }
+                }
+                android.util.Log.d("AppSingleton", "loadAdBlockHosts: loaded ${adBlockHosts.size} domains")
+            } catch (e: Exception) {
+                android.util.Log.e("AppSingleton", "loadAdBlockHosts: error", e)
+            }
+        }
+
+        @JvmStatic
+        fun fetchAdBlockHostsAsync(context: Context, onComplete: ((Boolean) -> Unit)? = null) {
+            Thread {
+                var success = false
+                try {
+                    android.util.Log.d("AppSingleton", "fetchAdBlockHostsAsync: downloading list from $adBlockListUrl")
+                    val url = java.net.URL(adBlockListUrl)
+                    val conn = url.openConnection() as java.net.HttpURLConnection
+                    conn.connectTimeout = 10000
+                    conn.readTimeout = 10000
+                    conn.connect()
+                    
+                    if (conn.responseCode == 200) {
+                        val tempFile = File(context.filesDir, "adblock_hosts.txt.tmp")
+                        conn.inputStream.use { input ->
+                            tempFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        
+                        val destFile = File(context.filesDir, "adblock_hosts.txt")
+                        if (tempFile.renameTo(destFile) || (destFile.delete() && tempFile.renameTo(destFile))) {
+                            success = true
+                            loadAdBlockHosts()
+                        }
+                    }
+                    conn.disconnect()
+                } catch (e: Exception) {
+                    android.util.Log.e("AppSingleton", "fetchAdBlockHostsAsync: download failed", e)
+                }
+                onComplete?.invoke(success)
+            }.start()
+        }
 
         private val assetCache = ConcurrentHashMap<String, String>()
 
@@ -272,6 +356,15 @@ class AppSingleton : Application() {
         isCanvasDisabled = prefs.getBoolean("DisableCanvas", true)
         prioritizeLocalAssets = prefs.getBoolean("PrioritizeLocalAssets", true)
         adBlockMode = prefs.getString("AdBlockMode", "legacy") ?: "legacy"
+        adBlockListUrl = prefs.getString("AdBlockListUrl", "https://raw.githubusercontent.com/Isaaker/Spotify-AdsList/main/Lists/standard_list.txt") ?: "https://raw.githubusercontent.com/Isaaker/Spotify-AdsList/main/Lists/standard_list.txt"
+
+        // Load cached or fallback blocklist hosts
+        loadAdBlockHosts()
+
+        // Fetch latest blocklist updates asynchronously
+        if (isNetworkAvailable()) {
+            fetchAdBlockHostsAsync(this)
+        }
 
         // Initialize dynamic hotfix updates
         FirebaseHotfixManager.initialize(this)

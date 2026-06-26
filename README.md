@@ -7,7 +7,10 @@ SpotiDuck is a high-performance, web-wrapped Spotify client for Android. By wrap
 ## 🚀 Key Features
 
 *   **⚡ WebView Pre-warming (Preloading)**: Instantiates the WebView and starts DNS resolution and webpage loading immediately during the `Application.onCreate()` phase, cutting startup wait times drastically.
-*   **🔇 Hardware-Level Ad Blocking**: Intercepts ad and tracking requests (`shouldInterceptRequest`) and blocks them. Supports multiple ad-blocking modes selectable in Settings: **Legacy (Connection-Verified)** mode (default) verifies media streams via background HTTP connections to prevent legitimate song skipping across devices, while **Instant (In-Memory)** mode blocks ads instantly without network checks by serving local `silent.mp3` range requests (`HTTP 206`).
+*   **🔇 Hardware-Level Ad Blocking**: Intercepts ad and tracking requests (`shouldInterceptRequest`) and blocks them. Supports three ad-blocking modes configured via a clean, nested settings dialog:
+    *   **Legacy (Connection-Verified)**: Verifies media streams via background HTTP connections to prevent legitimate song skipping.
+    *   **Instant (In-Memory)**: Blocks known ad/analytics domains instantly in-memory, bypassing network connection checks.
+    *   **Dynamic Blocklist (In-Memory)**: Uses a custom-parsed domain blocklist that can be configured and updated dynamically from a remote URL directly within the settings dialog.
 *   **🎵 MediaSession & Lock Screen Controls**: Binds WebView playback states to Android's `MediaSessionCompat` API. Supports full metadata syncing (song title, artist, duration, dynamic album art fetched via Picasso) and lock screen buttons (**Favorite**, **Repeat**, **Shuffle**, **Skip**, **Play/Pause**, and **Seek** progress).
 *   **📱 Immersive Fullscreen Player & Gestures**: A custom SpotiCap-style fullscreen layout featuring a dynamic background gradient and a pulsing album art shadow glow matching the colors of the current track's artwork. Includes swipe gestures on artwork/info to skip tracks and tap-to-play overrides.
 *   **🚗 Android Auto Support**: Implements `MediaBrowserServiceCompat` to expose your playlists, albums, artists, and podcasts directly to Android Auto or automotive media centers.

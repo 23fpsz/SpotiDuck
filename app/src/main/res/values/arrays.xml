@@ -49,9 +49,11 @@
     <string-array name="adblock_entries">
         <item>@string/menu_adblock_legacy</item>
         <item>@string/menu_adblock_instant</item>
+        <item>@string/menu_adblock_dynamic</item>
     </string-array>
     <string-array name="adblock_values">
         <item>legacy</item>
         <item>instant</item>
+        <item>dynamic</item>
     </string-array>
 </resources>

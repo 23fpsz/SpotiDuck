@@ -38,14 +38,10 @@
             app:icon="@drawable/canvas"
             app:key="DisableCanvas"
             app:title="Disable Canvas" />
-        <ListPreference
-            app:defaultValue="legacy"
-            app:entries="@array/adblock_entries"
-            app:entryValues="@array/adblock_values"
+        <Preference
             app:icon="@drawable/adblock"
             app:key="AdBlockMode"
-            app:title="@string/menu_adblock_mode"
-            app:useSimpleSummaryProvider="true" />
+            app:title="@string/menu_adblock_mode" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/menu_cat_gui">

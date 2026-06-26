@@ -234,20 +234,32 @@ class SpotifyWebViewClient : WebViewClient() {
             return WebResourceResponse("text/plain", "utf-8", 200, "OK", null, ByteArrayInputStream(ByteArray(0)))
         }
 
-        if (AppSingleton.adBlockMode == "instant") {
-            // --- NEW STYLE AD BLOCKER (In-memory instant blocking) ---
-            // Detect if this is a media (audio/video) request based on Accept headers, Sec-Fetch-Dest, or extensions
-            val accept = requestHeaders["Accept"] ?: requestHeaders["accept"] ?: ""
-            val secFetchDest = requestHeaders["Sec-Fetch-Dest"] ?: requestHeaders["sec-fetch-dest"] ?: ""
-            
-            val isMediaRequest = accept.contains("audio", ignoreCase = true) || 
-                                 accept.contains("video", ignoreCase = true) ||
-                                 secFetchDest.contains("audio", ignoreCase = true) || 
-                                 secFetchDest.contains("video", ignoreCase = true) ||
-                                 url.contains(".mp3") || url.contains(".mp4") || 
-                                 url.contains(".m4a") || url.contains(".aac") ||
-                                 url.contains("/mp3-ad/") || url.contains("scdn.co/mp3-ad/")
+        if (AppSingleton.adBlockMode == "dynamic") {
+            // --- DYNAMIC AD BLOCKER (In-memory dynamic blocklist checking) ---
+            val isAd = isAdOrAnalytics(url)
 
+            if (isAd) {
+                // Show adblocker notification message for any matched audio ad stream start
+                if (isMediaRequest) {
+                    AppSingleton.activityRef?.get()?.let { activity ->
+                        activity.runOnUiThread { 
+                            MainActivity.showMessage(activity.getString(R.string.txt_adblock))
+                        }
+                    }
+                }
+
+                if (isMediaRequest) {
+                    // Return silent.mp3 with proper Range (206) support to prevent decoding freezes
+                    return getSilentMediaResponse(webView, requestHeaders)
+                } else {
+                    // Return clean 200 OK empty response for tracking scripts/beacons
+                    val headers = HashMap<String, String>()
+                    headers["Access-Control-Allow-Origin"] = "*"
+                    return WebResourceResponse("text/plain", "utf-8", 200, "OK", headers, ByteArrayInputStream(ByteArray(0)))
+                }
+            }
+        } else if (AppSingleton.adBlockMode == "instant") {
+            // --- INSTANT AD BLOCKER (In-memory instant blocking) ---
             // Check if the URL matches known ad or analytics domains/patterns
             val isAdOrAnalytics = url.contains("doubleclick.net") || url.contains("googlesyndication.com") || 
                                   url.contains("fastly-insights.com") || url.contains("sentry.io") ||
@@ -274,23 +286,6 @@ class SpotifyWebViewClient : WebViewClient() {
                     headers["Access-Control-Allow-Origin"] = "*"
                     return WebResourceResponse("text/plain", "utf-8", 200, "OK", headers, ByteArrayInputStream(ByteArray(0)))
                 }
-            }
-
-            // CDN Ad Block (Instant block without network connections)
-            val isCdnAd = (url.contains(".net/audio/") || url.contains(".co/audio/") || 
-                           url.contains("akamaized.net/audio/") || url.contains("scdn.co/audio/") ||
-                           url.contains("spotifycdn.com/audio/")) &&
-                          !url.contains("__token__") &&
-                          !url.contains("podz-content") && 
-                          !url.contains("gew4-spclient")
-
-            if (isCdnAd) {
-                AppSingleton.activityRef?.get()?.let { activity ->
-                    activity.runOnUiThread { 
-                        MainActivity.showMessage(activity.getString(R.string.txt_adblock))
-                    }
-                }
-                return getSilentMediaResponse(webView, requestHeaders)
             }
         } else {
             // --- OLD STYLE AD BLOCKER (HTTP Connection based validation) ---
@@ -344,5 +339,33 @@ class SpotifyWebViewClient : WebViewClient() {
         }
 
         return null
+    }
+
+    private fun isAdOrAnalytics(url: String): Boolean {
+        if (url.contains("/mp3-ad/") || url.contains("scdn.co/mp3-ad/") || url.contains("amillionads.com")) {
+            return true
+        }
+        
+        try {
+            val uri = android.net.Uri.parse(url)
+            val host = uri.host ?: return false
+            var domain = host.lowercase()
+            
+            while (domain.contains(".")) {
+                if (AppSingleton.adBlockHosts.contains(domain)) {
+                    android.util.Log.d("SpotifyWebViewClient", "Blocked (Blocklist Match): $url")
+                    return true
+                }
+                val nextDot = domain.indexOf('.')
+                if (nextDot == -1 || nextDot == domain.length - 1) {
+                    break
+                }
+                domain = domain.substring(nextDot + 1)
+            }
+        } catch (e: Exception) {
+            // Ignore URI parsing exceptions
+        }
+        
+        return false
     }
 }
