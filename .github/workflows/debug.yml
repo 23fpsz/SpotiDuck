@@ -55,8 +55,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         mkdir -p outputs
-        # Delete old assets from the latest-beta release to prevent accumulation of old versions
-        gh release view latest-beta --json assets --jq '.assets[].name' | xargs -I {} gh release delete-asset latest-beta {} -y || true
+        # Delete the old release and tag so the new build is created fresh and promoted to the top of the page
+        gh release delete latest-beta --yes --cleanup-tag || true
         # Copy the dynamically named APKs preserving their filenames
         find app/build/outputs/apk/debug/ -name "*.apk" -exec cp {} outputs/ \;
         find app/build/outputs/apk/release/ -name "*.apk" -exec cp {} outputs/ \;
