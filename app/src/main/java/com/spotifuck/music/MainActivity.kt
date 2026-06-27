@@ -521,7 +521,8 @@ class MainActivity : AppCompatActivity() {
     fun setupWebView() {
         webView = AppSingleton.getWebView(this)
         
-        if (AppSingleton.guiMode == "bigwindow") {
+        val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        if (AppSingleton.guiMode == "bigwindow" && !isLandscape) {
             horizontalScrollView?.isScrollingEnabled = true
             virtualWidth = 1600
         } else {
@@ -532,7 +533,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val displayMetrics = DisplayMetrics()
-            windowManager.defaultDisplay.getMetrics(displayMetrics)
+            windowManager.defaultDisplay.getRealMetrics(displayMetrics)
             virtualWidth = displayMetrics.widthPixels
         }
 
@@ -566,7 +567,9 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         FirebaseHotfixManager.initialize(this)
         updateStatusBarVisibility()
-        requestedOrientation = if (AppSingleton.isForcePortrait) {
+        requestedOrientation = if (AppSingleton.guiMode == "bigwindow") {
+            ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        } else if (AppSingleton.isForcePortrait) {
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         } else {
             ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED

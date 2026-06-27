@@ -378,7 +378,7 @@ SETTING: GuiMode
 ├── VARIABLE: AppSingleton.guiMode (string)
 ├── DEFAULT: "csshack"
 ├── STORAGE KEY: "GuiMode"
-└── PURPOSE: Controls layout width and CSS overlays: "csshack" (fits layouts to mobile screens) or "bigwindow" (1600px desktop view with horizontal scrolling).
+└── PURPOSE: Controls layout width and CSS overlays: "csshack" (fits layouts to mobile screens) or "bigwindow" (desktop view that locks screen to landscape, disables horizontal scrolling, and scales viewport to fit display dimensions).
 ```
 ```
 SETTING: Amoled

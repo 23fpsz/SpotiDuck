@@ -43,8 +43,14 @@ class SpotifyWebViewClient : WebViewClient() {
             if (!url.contains("open.spotify.com")) return
         }
 
+        val displayMetrics = android.util.DisplayMetrics()
+        (webView.context.getSystemService(android.content.Context.WINDOW_SERVICE) as android.view.WindowManager)
+            .defaultDisplay.getRealMetrics(displayMetrics)
+        val screenWidthDp = (displayMetrics.widthPixels / displayMetrics.density).toInt()
+        val screenHeightDp = (displayMetrics.heightPixels / displayMetrics.density).toInt()
+
         val config = String.format(
-            "window.SF_CONFIG = { isAndAutoEnabled: %b, guiMode: '%s', isCanvasDisabled: %b, isFullScreenEnabled: %b, isAmoled: %b, autoPlayMode: '%s', closeNowPlay: %b, takeControl: %b, closeLibText: '%s', hideStatusBar: %b, statusBarHeight: %d };",
+            "window.SF_CONFIG = { isAndAutoEnabled: %b, guiMode: '%s', isCanvasDisabled: %b, isFullScreenEnabled: %b, isAmoled: %b, autoPlayMode: '%s', closeNowPlay: %b, takeControl: %b, closeLibText: '%s', hideStatusBar: %b, statusBarHeight: %d, screenWidth: %d, screenHeight: %d };",
             AppSingleton.isAndAutoEnabled,
             AppSingleton.guiMode,
             AppSingleton.isCanvasDisabled,
@@ -55,7 +61,9 @@ class SpotifyWebViewClient : WebViewClient() {
             AppSingleton.takeControl,
             AppSingleton.appContext.getString(R.string.txt_closelib),
             AppSingleton.hideStatusBar,
-            AppSingleton.statusBarHeightDp
+            AppSingleton.statusBarHeightDp,
+            screenWidthDp,
+            screenHeightDp
         )
         
         webView.evaluateJavascript(config + AppSingleton.getAssetFile("spotify_bridge.js"), null)

@@ -1110,16 +1110,44 @@
 
     window.addCSSJSHack = function() {
         let meta = document.querySelector('meta[name="viewport"]');
+        let isBigWindow = window.SF_CONFIG && window.SF_CONFIG.guiMode === "bigwindow";
+        let isLandscape = window.matchMedia("(orientation: landscape)").matches;
+        
+        let content = "width=device-width, initial-scale=1.0, viewport-fit=cover";
+        if (isBigWindow && isLandscape) {
+            let screenW = 0;
+            if (window.SF_CONFIG && typeof window.SF_CONFIG.screenWidth === 'number' && typeof window.SF_CONFIG.screenHeight === 'number') {
+                screenW = Math.max(window.SF_CONFIG.screenWidth, window.SF_CONFIG.screenHeight);
+            }
+            if (screenW > 0) {
+                let scale = screenW / 1280;
+                content = `width=1280, initial-scale=${scale.toFixed(3)}, minimum-scale=${scale.toFixed(3)}, maximum-scale=${scale.toFixed(3)}, viewport-fit=cover`;
+            } else {
+                content = "width=1280, viewport-fit=cover";
+            }
+        }
+
         if (meta) {
-            let content = meta.getAttribute('content');
-            if (!content.includes('viewport-fit=cover')) {
-                meta.setAttribute('content', content + ', viewport-fit=cover');
+            if (isBigWindow && isLandscape) {
+                meta.setAttribute('content', content);
+            } else {
+                let current = meta.getAttribute('content') || "";
+                if (!current.includes('viewport-fit=cover')) {
+                    meta.setAttribute('content', current + ', viewport-fit=cover');
+                }
             }
         } else {
             meta = document.createElement('meta');
             meta.name = "viewport";
-            meta.content = "width=device-width, initial-scale=1.0, viewport-fit=cover";
+            meta.content = content;
             document.head.appendChild(meta);
+        }
+
+        if (!window._sfResizeListenerAttached) {
+            window._sfResizeListenerAttached = true;
+            window.addEventListener('resize', () => {
+                if (window.addCSSJSHack) window.addCSSJSHack();
+            });
         }
 
         let sbHeight = 0;
