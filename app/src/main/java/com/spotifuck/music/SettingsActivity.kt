@@ -111,6 +111,12 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
                 AppSingleton.isFullScreenEnabled = sharedPreferences.getBoolean(key, true)
                 AppSingleton.pushLiveUpdate()
             }
+            "HideStatusBar" -> {
+                AppSingleton.hideStatusBar = sharedPreferences.getBoolean(key, false)
+                AppSingleton.activityRef?.get()?.let { main ->
+                    main.runOnUiThread { main.updateStatusBarVisibility() }
+                }
+            }
             "ForceEn" -> {
                 AppSingleton.isForceEn = sharedPreferences.getBoolean(key, false)
                 MainActivity.shouldReloadWebView = true

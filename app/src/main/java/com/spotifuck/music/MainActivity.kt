@@ -97,6 +97,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(bundle: Bundle?) {
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
         WindowInsetsControllerCompat(window, window.decorView).apply {
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false
@@ -134,6 +137,12 @@ class MainActivity : AppCompatActivity() {
                     val lp = pb.layoutParams as ConstraintLayout.LayoutParams
                     lp.topMargin = systemBars.top
                     pb.layoutParams = lp
+                }
+
+                // Cache the status bar height in dp when the status bar is visible
+                val currentStatusBarHeight = systemBars.top
+                if (currentStatusBarHeight > 0) {
+                    AppSingleton.statusBarHeightDp = (currentStatusBarHeight / resources.displayMetrics.density).toInt()
                 }
 
                 insets
@@ -482,13 +491,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun setExpandedMode(expanded: Boolean) {
+    private fun applyStatusBarState() {
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-        if (expanded) {
+        if (AppSingleton.hideStatusBar) {
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
             windowInsetsController.hide(WindowInsetsCompat.Type.statusBars())
             windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         } else {
+            window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
             windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
+        }
+        window.decorView.requestApplyInsets()
+        webView?.requestApplyInsets()
+
+        val sbHeight = if (AppSingleton.hideStatusBar) 0 else AppSingleton.statusBarHeightDp
+        webView?.evaluateJavascript("document.documentElement.style.setProperty('--sf-safe-area-top', '${sbHeight}px');", null)
+    }
+
+    fun setExpandedMode(expanded: Boolean) {
+        applyStatusBarState()
+    }
+
+    fun updateStatusBarVisibility() {
+        window.decorView.post {
+            applyStatusBarState()
         }
     }
 
@@ -539,6 +565,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         FirebaseHotfixManager.initialize(this)
+        updateStatusBarVisibility()
         requestedOrientation = if (AppSingleton.isForcePortrait) {
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         } else {

@@ -223,8 +223,8 @@ body.sf-fullscreen-disabled.sf-expanded aside[data-testid=now-playing-bar] {
 }
 
 #global-nav-bar {
-    padding-top: env(safe-area-inset-top) !important;
-    height: calc(48px + env(safe-area-inset-top)) !important;
+    padding-top: var(--sf-safe-area-top, env(safe-area-inset-top)) !important;
+    height: calc(48px + var(--sf-safe-area-top, env(safe-area-inset-top))) !important;
 }
 
 #global-nav-bar > div:not([style*="justify-content: center"]) {
@@ -368,18 +368,22 @@ body.sf-fullscreen-enabled.sf-expanded aside[data-testid=now-playing-bar] {
     z-index: calc(var(--above-everything-grid-area-z-index) + 10) !important;
 }
 
-/* Stable Album art positioning override */
+/* Base Album Art styling in Expanded Mode */
+body.sf-expanded div:has(> [data-testid="cover-art-image"]):has(+ #VideoPlayerCinema_ReactPortal) {
+    /* display: block !important; */
+    --cinema-media-height: calc(58vh - var(--sf-safe-area-top, env(safe-area-inset-top)));
+    height: var(--cinema-media-height);
+    aspect-ratio: 1;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* Immersive Fullscreen styling updates with dynamic status bar alignment */
 body.sf-fullscreen-enabled.sf-expanded div:has(> [data-testid="cover-art-image"]):has(+ #VideoPlayerCinema_ReactPortal) {
     transform: translateY(72px) !important;
     position: relative !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    /* display: block !important;
-    --cinema-media-height: 75vh; */
-    height: var(--cinema-media-height);
-    aspect-ratio: 1;
-    border-radius: 16px;
-    overflow: hidden;
 }
 
 body.sf-fullscreen-enabled.sf-expanded aside[data-testid=now-playing-view] [data-testid=now-playing-widget] {
@@ -423,7 +427,7 @@ body.sf-expanded #global-nav-bar {
     display: flex;
     flex-direction: column;
     padding: 20px;
-    padding-top: env(safe-area-inset-top);
+    padding-top: var(--sf-safe-area-top, env(safe-area-inset-top));
     padding-bottom: calc(20px + env(safe-area-inset-bottom));
     color: #fff;
     font-family: 'Montserrat', sans-serif;

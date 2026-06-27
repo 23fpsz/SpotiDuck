@@ -57,6 +57,8 @@ class AppSingleton : Application() {
         @JvmField var autoShutMinutes: Int = 0
         @JvmField var isCanvasDisabled: Boolean = false
         @JvmField var isFullScreenEnabled: Boolean = false
+        @JvmField var hideStatusBar: Boolean = false
+        @JvmField var statusBarHeightDp: Int = 0
         @JvmField var isSearchActive: Boolean = false
         @JvmField var prioritizeLocalAssets: Boolean = true
         @JvmField var adBlockMode: String = "legacy"
@@ -334,6 +336,7 @@ class AppSingleton : Application() {
         isAndAutoEnabled = prefs.getBoolean("AndAuto", true)
         stopOnSwipe = prefs.getBoolean("SwipeStop", true)
         isFullScreenEnabled = prefs.getBoolean("ExpandedFullScreen", true)
+        hideStatusBar = prefs.getBoolean("HideStatusBar", false)
 
         autoShutMinutes = try {
             prefs.getString("AutoShut", "0")?.toInt() ?: 0

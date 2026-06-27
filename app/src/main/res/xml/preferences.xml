@@ -12,6 +12,12 @@
             app:key="ServiceOn"
             app:summary="Run the background player service"
             app:title="@string/txt_startservice" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/statusbar"
+            app:key="HideStatusBar"
+            app:summary="Hide the system status bar across the entire app"
+            app:title="Hide Status Bar" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/menu_cat_player">

@@ -53,12 +53,31 @@
                     if (!ch.querySelector('[data-testid="CoverSlotCollapsed__container"]') && ch.querySelector('a')) {
                         if (!ch.classList.contains('sf-track-info')) {
                             ch.classList.add('sf-track-info');
-                            setupSwipe(ch);
+                            // Removed swipe gesture from mini-player song title
+                            // setupSwipe(ch);
                         }
                         break;
                     }
                 }
             }
+        }
+
+        // Setup swipe gesture on the large album art card of the expanded Now Playing View
+        let expArt = null;
+        let coverImages = document.querySelectorAll('[data-testid="cover-art-image"]');
+        for (let i = 0; i < coverImages.length; i++) {
+            let img = coverImages[i];
+            if (img.closest('aside[data-testid="now-playing-bar"]')) {
+                continue;
+            }
+            if (img.closest('#main-view') || img.closest('.main-view-container') || img.closest('.YourLibraryX')) {
+                continue;
+            }
+            expArt = img;
+            break;
+        }
+        if (expArt) {
+            setupSwipe(expArt.parentElement || expArt);
         }
     };
 
@@ -384,13 +403,27 @@
     function setupSwipe(el, isFs = false) {
         if (el._sfSwipeAttached) return;
         el._sfSwipeAttached = true;
+        el.style.touchAction = 'pan-y';
+        el.style.userSelect = 'none';
+        el.style.webkitUserDrag = 'none';
+        el.addEventListener('dragstart', (e) => e.preventDefault());
+        
+        // Also apply drag/selection prevention to nested images to prevent browser drag events
+        el.querySelectorAll('img').forEach(img => {
+            img.style.webkitUserDrag = 'none';
+            img.style.userSelect = 'none';
+            img.addEventListener('dragstart', (e) => e.preventDefault());
+        });
+        
         let startX = null, startY = null, swiping = false;
+        let currentDx = 0;
         
         el.addEventListener('touchstart', (e) => {
             if (e.touches.length !== 1) return;
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
             swiping = false;
+            currentDx = 0;
             el.style.transition = 'none';
         }, { passive: true });
 
@@ -402,6 +435,7 @@
                 swiping = true;
             }
             if (swiping) {
+                currentDx = dx;
                 el.style.transform = `translateX(${dx}px)`;
                 el.style.opacity = Math.max(0.3, 1 - Math.abs(dx) / 250);
             }
@@ -409,10 +443,10 @@
 
         el.addEventListener('touchend', (e) => {
             if (startX === null) return;
-            let dx = e.changedTouches[0].clientX - startX;
             startX = null;
-            if (swiping && Math.abs(dx) > 40) {
-                if (dx > 0) {
+            let threshold = el.offsetWidth / 2;
+            if (swiping && Math.abs(currentDx) > threshold) {
+                if (currentDx > 0) {
                     actSkipBack();
                 } else {
                     actSkipForward();
@@ -422,8 +456,8 @@
                 }
             }
             el.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-            el.style.transform = 'translateX(0)';
-            el.style.opacity = '1';
+            el.style.transform = '';
+            el.style.opacity = '';
         });
     }
 
@@ -1088,6 +1122,12 @@
             document.head.appendChild(meta);
         }
 
+        let sbHeight = 0;
+        if (window.SF_CONFIG && !window.SF_CONFIG.hideStatusBar) {
+            sbHeight = window.SF_CONFIG.statusBarHeight || 0;
+        }
+        document.documentElement.style.setProperty('--sf-safe-area-top', sbHeight + 'px');
+
         if (window.SF_CONFIG.guiMode === "csshack") {
             const checkExpanded = () => {
                 let minBtn = document.querySelector('button[aria-label*="Minimize"]:not(#Desktop_LeftSidebar_Id *):not(.YourLibraryX *):not([aria-label*="Library"]), button[aria-label*="Back to player"]');
@@ -1259,8 +1299,8 @@
                     if (exp == 2) {
                         ls.style.setProperty('position', 'fixed', 'important');
                         ls.style.setProperty('width', '100%', 'important');
-                        ls.style.setProperty('height', 'calc(100vh - 48px - env(safe-area-inset-top))', 'important');
-                        ls.style.setProperty('top', 'calc(48px + env(safe-area-inset-top))', 'important');
+                        ls.style.setProperty('height', 'calc(100vh - 48px - var(--sf-safe-area-top, env(safe-area-inset-top)))', 'important');
+                        ls.style.setProperty('top', 'calc(48px + var(--sf-safe-area-top, env(safe-area-inset-top)))', 'important');
                         ls.style.setProperty('bottom', '0px', 'important');
                         ls.style.setProperty('left', '0px', 'important');
                         ls.style.setProperty('overflow-y', 'auto', 'important');
@@ -1270,7 +1310,7 @@
                     } else {
                         ls.style.setProperty('z-index', '1', 'important');
                         ls.style.setProperty('position', 'fixed', 'important');
-                        ls.style.setProperty('top', 'env(safe-area-inset-top)', 'important');
+                        ls.style.setProperty('top', 'var(--sf-safe-area-top, env(safe-area-inset-top))', 'important');
                         ls.style.setProperty('left', '60px', 'important');
                         ls.style.setProperty('width', '48px', 'important');
                         ls.style.setProperty('height', '48px', 'important');

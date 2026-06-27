@@ -44,7 +44,7 @@ class SpotifyWebViewClient : WebViewClient() {
         }
 
         val config = String.format(
-            "window.SF_CONFIG = { isAndAutoEnabled: %b, guiMode: '%s', isCanvasDisabled: %b, isFullScreenEnabled: %b, isAmoled: %b, autoPlayMode: '%s', closeNowPlay: %b, takeControl: %b, closeLibText: '%s' };",
+            "window.SF_CONFIG = { isAndAutoEnabled: %b, guiMode: '%s', isCanvasDisabled: %b, isFullScreenEnabled: %b, isAmoled: %b, autoPlayMode: '%s', closeNowPlay: %b, takeControl: %b, closeLibText: '%s', hideStatusBar: %b, statusBarHeight: %d };",
             AppSingleton.isAndAutoEnabled,
             AppSingleton.guiMode,
             AppSingleton.isCanvasDisabled,
@@ -53,7 +53,9 @@ class SpotifyWebViewClient : WebViewClient() {
             AppSingleton.autoPlayMode,
             AppSingleton.closeNowPlay,
             AppSingleton.takeControl,
-            AppSingleton.appContext.getString(R.string.txt_closelib)
+            AppSingleton.appContext.getString(R.string.txt_closelib),
+            AppSingleton.hideStatusBar,
+            AppSingleton.statusBarHeightDp
         )
         
         webView.evaluateJavascript(config + AppSingleton.getAssetFile("spotify_bridge.js"), null)
@@ -62,7 +64,7 @@ class SpotifyWebViewClient : WebViewClient() {
             val css = AppSingleton.getAssetFile("css_hacks.css")
             val amoledCss = if (AppSingleton.isAmoled) ".encore-dark-theme{--background-base:#000;--background-highlight:#000;--background-elevated-base:#000;--background-elevated-highlight:#000;--background-elevated-press:#000;--background-tinted-base:#000} aside[data-testid=now-playing-bar]{background:#000!important;box-shadow:none;border-top:1px solid #666}" else ""
             
-            val classLogic = StringBuilder("document.body.classList.remove('sf-canvas-blur', 'sf-video-bg', 'sf-fullscreen-enabled', 'sf-fullscreen-disabled', 'sf-hide-canvas');")
+            val classLogic = StringBuilder("document.body.classList.remove('sf-canvas-blur', 'sf-video-bg', 'sf-fullscreen-enabled', 'sf-fullscreen-disabled', 'sf-hide-canvas', 'sf-statusbar-hidden');")
             if (AppSingleton.isCanvasDisabled) {
                 classLogic.append("document.body.classList.add('sf-canvas-blur', 'sf-hide-canvas');")
             } else {
@@ -72,6 +74,9 @@ class SpotifyWebViewClient : WebViewClient() {
                 classLogic.append("document.body.classList.add('sf-fullscreen-enabled');")
             } else {
                 classLogic.append("document.body.classList.add('sf-fullscreen-disabled');")
+            }
+            if (AppSingleton.hideStatusBar) {
+                classLogic.append("document.body.classList.add('sf-statusbar-hidden');")
             }
 
             val injectCssJs = String.format(
