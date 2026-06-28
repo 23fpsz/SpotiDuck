@@ -537,7 +537,7 @@
                 document.body.classList.remove('sf-hide-canvas');
                 document.body.classList.add('sf-video-bg');
             }
-            let cv = document.getElementById('settings.canvasVideos');
+            let cv = findCanvasToggle();
             if (cv) {
                 let shouldBeChecked = !config.isCanvasDisabled;
                 if (cv.checked !== shouldBeChecked) cv.click();
@@ -904,6 +904,22 @@
         }
     };
 
+    window.findCanvasToggle = function() {
+        // Try the current known ID first
+        let el = document.getElementById('settings.videos-and-canvas.canvas');
+        if (el) return el;
+        // Fallback: find a label whose visible text is exactly "Canvas" and grab its checkbox
+        for (let label of document.querySelectorAll('label[for]')) {
+            if ((label.textContent || '').trim() === 'Canvas') {
+                try {
+                    let cb = document.getElementById(label.htmlFor) || document.querySelector('#' + CSS.escape(label.htmlFor));
+                    if (cb && cb.type === 'checkbox') return cb;
+                } catch(e) {}
+            }
+        }
+        return null;
+    };
+
     window.syncCanvasToggle = function(el) {
         if (!el || el.classList.contains('fuckd-cv')) return;
         el.classList.add('fuckd-cv');
@@ -968,8 +984,8 @@
                                 }
                             });
                             
-                            let cv = node.querySelector('#settings\\.canvasVideos') || (node.id === 'settings.canvasVideos' ? node : null);
-                            if (cv) {
+                            let cv = findCanvasToggle();
+                            if (cv && node.contains(cv)) {
                                 syncCanvasToggle(cv);
                             }
                             
@@ -1001,7 +1017,7 @@
             if (afint) clearInterval(afint);
             afint = setInterval(() => {
                 if (typeof window.SF_CONFIG.isCanvasDisabled !== 'undefined') {
-                    let cv = document.getElementById('settings.canvasVideos');
+                    let cv = findCanvasToggle();
                     if (cv) syncCanvasToggle(cv);
                 }
                 if (window.SF_CONFIG.closeNowPlay) {
